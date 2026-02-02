@@ -1,0 +1,121 @@
+//
+//  GameView.swift
+//  Procyon
+//
+//  Created by Italo Mandara on 31/01/2026.
+//
+
+import SwiftUI
+import Kingfisher
+import Flow
+import AVKit
+
+struct GameDetailView: View {
+    @Binding var game: SteamGame?
+    @State private var player = AVPlayer()
+    @State private var isMuted: Bool = true
+    
+    var body: some View {
+        if game != nil {
+            VStack (alignment: .leading) {
+                if (game!.movies != nil) {
+//                    ZStack {
+                        PlayerLayerView(player: player)
+                            .ignoresSafeArea()
+                            .frame(height: 540)
+                            .position(x: 460, y: 260)
+                            .onAppear {
+                                let url = URL(string: game!.movies![0].hlsH264!)!
+                                player = AVPlayer(url: url)
+                                player.isMuted = true
+                                player.play()
+                            }
+                            .onDisappear {
+                                player.pause()
+                            }
+//                    }
+//                    .frame(width: .infinity, height: 400)
+//                    .clipped()
+                } else {
+                    KFImage(URL(string: game!.headerImage))
+                        .placeholder {
+                            ProgressView()
+                        }
+                        .resizable()
+                        .scaledToFit()
+                }
+                VStack (alignment: .leading) {
+                    Text(game!.name).font(.largeTitle.bold())
+                    Text(game?.developers.joined(separator: ", ") ?? ("Unknown Developer")).font(.title2)
+                    Text(game?.publishers.joined(separator: ", ") ?? ("Unknown Publisher")).font(.title3).padding(.bottom)
+                    
+                    if (game!.genres != nil && game!.genres!.count > 0){
+                        Text("Genre:")
+                        HFlow(alignment: .center) {
+                            ForEach(game!.genres!, id: \.id) { genre in
+                                Tag(genre.description)
+                                    .padding(.vertical, 0.5)
+                            }
+                        }
+                        .padding(.bottom)
+                    }
+                    
+                    if (game!.categories.count > 0){
+                        Text("Category:")
+                        HFlow(alignment: .center) {
+                            ForEach(game!.categories, id: \.id) { category in
+                                Tag(category.description)
+                                    .padding(.vertical, 0.5)
+                            }
+                        }
+                        .padding(.bottom)
+                    }
+                    Text(game!.detailedDescription)
+                        .padding(.bottom)
+                    
+                    if(game!.screenshots != nil && game!.screenshots!.count > 0) {
+                        Text("Screenshots:").font(.title2)
+                        HFlow {
+                            ForEach(game!.screenshots!, id: \.id) { screenshot in
+                                KFImage(URL(string: screenshot.pathThumbnail))
+                                    .placeholder {
+                                        ProgressView()
+                                    }
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 180, height: 100)
+                            }
+                        }.padding(.bottom)
+                    }
+                    if (game!.movies != nil) {
+                        Text("Videos:").font(.title2)
+                        HFlow {
+                            ForEach(game!.movies!, id: \.id) { movie in
+                                KFImage(URL(string: movie.thumbnail))
+                                    .placeholder {
+                                        ProgressView()
+                                    }
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 180, height: 100)
+                            }
+                        }.padding(.bottom)
+                    }
+                }
+                .padding()
+            }
+            .frame(width: windowWidth - 100)
+        }
+    }
+}
+
+#Preview {
+    @State @Previewable var game: SteamGame? = .mock
+
+    ZStack (alignment: .topTrailing) {
+        ScrollView {
+            GameDetailView(game: $game)
+        }
+    }
+}
+    

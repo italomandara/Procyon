@@ -10,6 +10,9 @@ import Kingfisher
 
 struct GameThumbnail: View {
     let item: SteamGame
+    @Binding var showDetailView: Bool
+    @Binding var selectedGame: SteamGame?
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             ZStack(alignment: .topTrailing){
@@ -35,19 +38,14 @@ struct GameThumbnail: View {
                 Text(item.name)
                     .font(.headline)
                 HStack (spacing: 6){
-                    Text(item.type)
-                        .padding(.horizontal)
-                        .background(.red)
-                        .clipShape(Capsule())
+                    Tag(item.type)
                     if (item.genres != nil && item.genres!.count > 0){
-                        Text(item.genres!.first!.description)
-                            .padding(.horizontal)
-                            .background(.red)
-                            .clipShape(Capsule())
+                        Tag(item.genres!.first!.description)
                     }
                     Spacer()
                     Button("View") {
-                        
+                        showDetailView =  true
+                        selectedGame = item
                     }
                     .font(.caption)
                     .cornerRadius(20)
@@ -56,7 +54,6 @@ struct GameThumbnail: View {
                     }
                     .cornerRadius(20)
                 }
-//                        .font(.caption)
                 .padding(.bottom, 8)
             }.foregroundStyle(.white)
                 .padding(.horizontal)

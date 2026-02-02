@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+let windowWidth: CGFloat = 1024
+let windowHeight: CGFloat = 750
 
 let sample = [
     "730",
@@ -65,75 +67,95 @@ let sample = [
 struct ContentView: View {
     @State private var items: [SteamGame] = []
     @State private var isLoading = false
-    @State private var showSheet = false
+    @State private var showOptions = false
+    @State private var showDetailView = false
     @State private var errorMessage: String?
     @State private var filter: String = ""
+    @State private var progress: Double = 0
+    @State private var progressPollTask: Task<Void, Never>? = nil
+    @State private var selectedGame: SteamGame? = nil
     
-    private let api = SteamAPI()
+    private var api = SteamAPI()
+    
     var body: some View {
-        VStack(alignment: .center){
-            if isLoading {
-                ProgressView("Loading…").frame(width: 1024, height: 600)
+        VStack(alignment: .center) {
+            if (isLoading) {
+                ZStack{
+                    Image(.procyon).resizable()
+                        .scaledToFill().blendMode(.multiply).opacity(0.1)
+                    VStack(alignment: .center) {
+                        Image(.procyon).resizable()
+                            .scaledToFit()
+                            .frame(width: 100)
+                        Text("Building your library…")
+                            .foregroundStyle(.white)
+                            .padding(.top)
+                        ProgressView(value: progress, total: 100)
+                            .progressViewStyle(.linear)
+                            .frame(width: 200, alignment: .center)
+                    }
+                }.frame(width: windowWidth, height: windowHeight)
             } else if let errorMessage {
                 Text("Error: \(errorMessage)")
                     .lineLimit(1)
                     .foregroundStyle(.red)
-                    .frame(width: 1024, height: 600)
+                    .frame(width: windowWidth, height: windowHeight)
             } else {
                 ZStack(alignment: .bottom)  {
-                    GamesView(items: items.filter { item in
+                    GamesList(items: items.filter { item in
                         filter.isEmpty ||
                         item.name.lowercased().contains(filter.lowercased())
-                    })
-                    Toolbar(filter: $filter, showOptions: $showSheet).padding(.bottom)
+                    }, showDetailView: $showDetailView, selectedGame: $selectedGame)
+                    Toolbar(filter: $filter, showOptions: $showOptions).padding(.bottom)
                 }
             }
         }
-        .sheet(isPresented: $showSheet) {
-            ZStack(alignment: .topTrailing) {
-                VStack (alignment: .center){
-                    Text("Options")
-                    Spacer()
-                    Button("Delete cache") {
-                        api.deleteCache()
-                    }.disabled(!api.hasCache).cornerRadius(20)
-                    Button("Reload") {
-                        Task { await load() }
-                    }.cornerRadius(20)
-                }
-                .frame(width: 300, height: 300)
-                .padding()
-                Button {
-                    showSheet = false
-                } label: {
-                    Image(systemName: "xmark")
-                }
-                .buttonStyle(.plain)
-                .padding(20)
-                .cornerRadius(20)
+        .sheet(isPresented: $showOptions) {
+            OptionsView(showOptions: $showOptions, api: api, load: load)
+        }
+        .sheet(isPresented: $showDetailView) {
+            Modal(showModal: $showDetailView) {
+                GameDetailView(game: $selectedGame)
             }
         }
         .task { await load() }
         .background(
             LinearGradient(
-                    colors: [
-                        Color(red: 0.60, green: 0.0, blue: 0.0),
-                        Color(red: 0.35, green: 0.0, blue: 0.0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                colors: [
+                    Color(red: 0.60, green: 0.0, blue: 0.0),
+                    Color(red: 0.35, green: 0.0, blue: 0.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         )
-        .frame(width: 1024, height: 600)
+        .frame(width: windowWidth, height: windowHeight)
         .fixedSize()
         .transition(.opacity)
+        .onDisappear {
+            progressPollTask?.cancel()
+            progressPollTask = nil
+        }
     }
     @MainActor
     private func load() async {
         isLoading = true
-        defer { isLoading = false }
+        progress = 0
+        progressPollTask?.cancel()
+        progressPollTask = Task { @MainActor in
+            while !Task.isCancelled {
+                self.progress = api.progress
+                try? await Task.sleep(nanoseconds: 500_000_000)
+            }
+        }
+        defer {
+            isLoading = false
+            progressPollTask?.cancel()
+            progressPollTask = nil
+        }
         do {
             items = try await api.fetchGamesInfo(appIDs: sample)
+            progress = 100
         } catch {
             errorMessage = error.localizedDescription
             print(error)

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3826404E2F2F67A500E1FCC0 /* Flow in Frameworks */ = {isa = PBXBuildFile; productRef = 3826404D2F2F67A500E1FCC0 /* Flow */; };
+		385777BD2F30B37200346515 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 385777BC2F30B37200346515 /* Alamofire */; };
+		385777C12F311EA800346515 /* Logo.icon in Resources */ = {isa = PBXBuildFile; fileRef = 385777C02F311EA800346515 /* Logo.icon */; };
 		385A91C52F2CC302006CCF47 /* ProcyonUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 385A91C32F2CC302006CCF47 /* ProcyonUITestsLaunchTests.swift */; };
 		385A91CE2F2D1561006CCF47 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 385A91CD2F2D1561006CCF47 /* Kingfisher */; };
 /* End PBXBuildFile section */
@@ -32,6 +35,7 @@
 		383306842F2BE63D00228E6C /* Procyon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Procyon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		383306962F2BE63E00228E6C /* ProcyonTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProcyonTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		383306A02F2BE63E00228E6C /* ProcyonUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProcyonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		385777C02F311EA800346515 /* Logo.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Logo.icon; sourceTree = "<group>"; };
 		385A91C32F2CC302006CCF47 /* ProcyonUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcyonUITestsLaunchTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -71,6 +75,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				385777BD2F30B37200346515 /* Alamofire in Frameworks */,
+				3826404E2F2F67A500E1FCC0 /* Flow in Frameworks */,
 				385A91CE2F2D1561006CCF47 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -92,6 +98,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3826404C2F2F67A500E1FCC0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		3833067B2F2BE63D00228E6C = {
 			isa = PBXGroup;
 			children = (
@@ -99,7 +112,9 @@
 				383306992F2BE63E00228E6C /* ProcyonTests */,
 				383306A32F2BE63E00228E6C /* ProcyonUITests */,
 				385A91C32F2CC302006CCF47 /* ProcyonUITestsLaunchTests.swift */,
+				3826404C2F2F67A500E1FCC0 /* Frameworks */,
 				383306852F2BE63D00228E6C /* Products */,
+				385777C02F311EA800346515 /* Logo.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -134,6 +149,8 @@
 			name = Procyon;
 			packageProductDependencies = (
 				385A91CD2F2D1561006CCF47 /* Kingfisher */,
+				3826404D2F2F67A500E1FCC0 /* Flow */,
+				385777BC2F30B37200346515 /* Alamofire */,
 			);
 			productName = Procyon;
 			productReference = 383306842F2BE63D00228E6C /* Procyon.app */;
@@ -219,6 +236,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				385A91CC2F2D1561006CCF47 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				3826402E2F2F655600E1FCC0 /* XCRemoteSwiftPackageReference "SwiftUI-Flow" */,
+				385777BB2F30B37200346515 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 383306852F2BE63D00228E6C /* Products */;
@@ -237,6 +256,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				385777C12F311EA800346515 /* Logo.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -420,8 +440,10 @@
 			baseConfigurationReferenceAnchor = 383306862F2BE63D00228E6C /* Procyon */;
 			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Logo;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = Logo;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -442,6 +464,8 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Procyon/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Procyon;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -465,8 +489,10 @@
 			baseConfigurationReferenceAnchor = 383306862F2BE63D00228E6C /* Procyon */;
 			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Logo;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = Logo;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -487,6 +513,8 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Procyon/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Procyon;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -627,6 +655,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		3826402E2F2F655600E1FCC0 /* XCRemoteSwiftPackageReference "SwiftUI-Flow" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tevelee/SwiftUI-Flow";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.1;
+			};
+		};
+		385777BB2F30B37200346515 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.11.1;
+			};
+		};
 		385A91CC2F2D1561006CCF47 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher";
@@ -638,6 +682,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3826404D2F2F67A500E1FCC0 /* Flow */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3826402E2F2F655600E1FCC0 /* XCRemoteSwiftPackageReference "SwiftUI-Flow" */;
+			productName = Flow;
+		};
+		385777BC2F30B37200346515 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 385777BB2F30B37200346515 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
 		385A91CD2F2D1561006CCF47 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 385A91CC2F2D1561006CCF47 /* XCRemoteSwiftPackageReference "Kingfisher" */;
