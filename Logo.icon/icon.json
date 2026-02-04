@@ -17,6 +17,7 @@
       "layers" : [
         {
           "blend-mode" : "normal",
+          "fill" : "none",
           "glass" : true,
           "hidden" : false,
           "image-name" : "Image.png",

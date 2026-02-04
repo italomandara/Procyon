@@ -69,7 +69,7 @@ final class SteamAPI {
     }
     func fetchGameInfo(appID: String) async throws -> [SteamGame]? {
         if let cached = cache[appID] {
-            print("Returning from cache for id \(appID)")
+//            print("Returning from cache for id \(appID)")
             return cached
         }
         
@@ -84,7 +84,7 @@ final class SteamAPI {
             
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
             
-            print("Decoded \(root.data.count) items for game \(appID)")
+//            print("Decoded \(root.data.count) items for game \(appID)")
             cache[appID] = root.data
             saveCache()
             return root.data
@@ -105,13 +105,14 @@ final class SteamAPI {
                 let processed = index + 1
                 let percent = (Double(processed) / Double(total)) * 100.0
                 self.progress = percent
-                print(self.progress)
+//                print(self.progress)
             }
         }
         // Ensure progress is 100% at completion when there were items to process
         if total > 0 {
             self.progress = 100
         }
+        print(items.map(\.id))
         return items
     }
 }

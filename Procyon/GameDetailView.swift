@@ -16,26 +16,22 @@ struct GameDetailView: View {
     @State private var isMuted: Bool = true
     
     var body: some View {
-        if game != nil {
+        if (game != nil) {
             VStack (alignment: .leading) {
                 if (game!.movies != nil) {
-//                    ZStack {
-                        PlayerLayerView(player: player)
-                            .ignoresSafeArea()
-                            .frame(height: 540)
-                            .position(x: 460, y: 260)
-                            .onAppear {
-                                let url = URL(string: game!.movies![0].hlsH264!)!
-                                player = AVPlayer(url: url)
-                                player.isMuted = true
-                                player.play()
-                            }
-                            .onDisappear {
-                                player.pause()
-                            }
-//                    }
-//                    .frame(width: .infinity, height: 400)
-//                    .clipped()
+                    PlayerLayerView(player: player)
+                        .ignoresSafeArea()
+                        .frame(height: 540)
+                        .position(x: 460, y: 260)
+                        .onAppear {
+                            let url = URL(string: game!.movies![0].hlsH264!)!
+                            player = AVPlayer(url: url)
+                            player.isMuted = true
+                            player.play()
+                        }
+                        .onDisappear {
+                            player.pause()
+                        }
                 } else {
                     KFImage(URL(string: game!.headerImage))
                         .placeholder {
@@ -45,9 +41,37 @@ struct GameDetailView: View {
                         .scaledToFit()
                 }
                 VStack (alignment: .leading) {
-                    Text(game!.name).font(.largeTitle.bold())
-                    Text(game?.developers.joined(separator: ", ") ?? ("Unknown Developer")).font(.title2)
-                    Text(game?.publishers.joined(separator: ", ") ?? ("Unknown Publisher")).font(.title3).padding(.bottom)
+                    HStack (alignment: .top){
+                        VStack(alignment: .leading){
+                            Text(game!.name).font(.largeTitle.bold())
+                            Text(game?.developers.joined(separator: ", ") ?? ("Unknown Developer")).font(.title2)
+                            Text(game?.publishers.joined(separator: ", ") ?? ("Unknown Publisher")).font(.title3).padding(.bottom)
+                        }
+                        Button {} label: {
+                            Text("Play")
+                                .font(.system(size: 20, weight: .bold))
+                                .padding(.horizontal, 10)
+                                .foregroundStyle(.white)
+                                .clipShape(Capsule())
+                        }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 24)
+                            .padding(.top, -15)
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                        Spacer()
+                        VStack(alignment: .trailing){
+                            if (game!.platforms.mac) {
+                                Tag("Available on macOS")
+                            }
+                            if (game!.platforms.linux) {
+                                Tag("Available on linux")
+                            }
+                            if (game!.platforms.windows) {
+                                Tag("Available on windows")
+                            }
+                        }
+                    }
                     
                     if (game!.genres != nil && game!.genres!.count > 0){
                         Text("Genre:")
@@ -99,10 +123,13 @@ struct GameDetailView: View {
                                     .scaledToFit()
                                     .frame(width: 180, height: 100)
                             }
-                        }.padding(.bottom)
+                        }
+                        .padding(.bottom)
                     }
                 }
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.top, game!.movies == nil ? 20: -15)
+                .padding(.bottom, 20)
             }
             .frame(width: windowWidth - 100)
         }
