@@ -113,6 +113,17 @@ func extractAppIDRegex(from filename: String) -> String? {
     return String(filename[idRange])
 }
 
+func extractFolderNameRegex(_ path: String) -> String {
+    let pattern = #"^file:\/\/\/Volumes\/(.+)\/steamapps\/$"#
+    let regex = try? NSRegularExpression(pattern: pattern)
+    let decodedpath = path.removingPercentEncoding ?? path
+    let range = NSRange(decodedpath.startIndex..<decodedpath.endIndex, in: decodedpath)
+    guard let match = regex?.firstMatch(in: decodedpath, options: [], range: range),
+          match.numberOfRanges == 2,
+          let idRange = Range(match.range(at: 1), in: decodedpath) else { return decodedpath }
+    return String(decodedpath[idRange])
+}
+
 let id = extractAppIDRegex(from: "appmanifest_8870.acf") // "8870"
 
 func scanSteamFolder(dest: URL) throws -> [String] {

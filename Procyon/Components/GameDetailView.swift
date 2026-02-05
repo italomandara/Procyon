@@ -14,65 +14,51 @@ struct GameDetailView: View {
     @Binding var game: SteamGame?
     @State private var player = AVPlayer()
     @State private var isMuted: Bool = true
+    @Binding var showDetailView: Bool
     
     var body: some View {
         if (game != nil) {
             VStack (alignment: .leading) {
-                if (game!.movies != nil) {
-                    PlayerLayerView(player: player)
-                        .ignoresSafeArea()
-                        .frame(height: 540)
-                        .position(x: 460, y: 260)
-                        .onAppear {
-                            let url = URL(string: game!.movies![0].hlsH264!)!
-                            player = AVPlayer(url: url)
-                            player.isMuted = true
-                            player.play()
-                        }
-                        .onDisappear {
-                            player.pause()
-                        }
-                } else {
-                    KFImage(URL(string: game!.headerImage))
-                        .placeholder {
-                            ProgressView()
-                        }
-                        .resizable()
-                        .scaledToFit()
+                ZStack(alignment: .bottom ) {
+                    if (game!.movies != nil) {
+                        PlayerLayerView(player: player)
+                            .ignoresSafeArea()
+                            .frame(height: 540)
+                            .position(x: 460, y: 260)
+                            .onAppear {
+                                let url = URL(string: game!.movies![0].hlsH264!)!
+                                player = AVPlayer(url: url)
+                                player.isMuted = true
+                                player.play()
+                            }
+                            .onDisappear {
+                                player.pause()
+                            }
+                    } else {
+                        KFImage(URL(string: game!.headerImage))
+                            .placeholder {
+                                ProgressView()
+                            }
+                            .resizable()
+                            .scaledToFit()
+                    }
+                    GameHeader(game: $game, showDetailView: $showDetailView)
+                        .padding()
+                        .padding(.top, 40)
+                        .background(
+                            LinearGradient(
+                                colors: [
+                                    .black.opacity(0),
+                                    .black.opacity(0.8),
+                                    .black.opacity(1)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .padding(.bottom, game!.movies != nil ? 20 : 0)
                 }
                 VStack (alignment: .leading) {
-                    HStack (alignment: .top){
-                        VStack(alignment: .leading){
-                            Text(game!.name).font(.largeTitle.bold())
-                            Text(game?.developers.joined(separator: ", ") ?? ("Unknown Developer")).font(.title2)
-                            Text(game?.publishers.joined(separator: ", ") ?? ("Unknown Publisher")).font(.title3).padding(.bottom)
-                        }
-                        Button {} label: {
-                            Text("Play")
-                                .font(.system(size: 20, weight: .bold))
-                                .padding(.horizontal, 10)
-                                .foregroundStyle(.white)
-                                .clipShape(Capsule())
-                        }
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, 24)
-                            .padding(.top, -15)
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.large)
-                        Spacer()
-                        VStack(alignment: .trailing){
-                            if (game!.platforms.mac) {
-                                Tag("Available on macOS")
-                            }
-                            if (game!.platforms.linux) {
-                                Tag("Available on linux")
-                            }
-                            if (game!.platforms.windows) {
-                                Tag("Available on windows")
-                            }
-                        }
-                    }
-                    
                     if (game!.genres != nil && game!.genres!.count > 0){
                         Text("Genre:")
                         HFlow(alignment: .center) {
@@ -138,10 +124,11 @@ struct GameDetailView: View {
 
 #Preview {
     @State @Previewable var game: SteamGame? = .mock
-
+    @State @Previewable var showDetailView: Bool = true
+    
     ZStack (alignment: .topTrailing) {
         ScrollView {
-            GameDetailView(game: $game)
+            GameDetailView(game: $game, showDetailView: $showDetailView)
         }
     }
 }

@@ -49,9 +49,12 @@ struct ContentView: View {
                     .frame(width: windowWidth, height: windowHeight)
             } else {
                 ZStack(alignment: .bottom)  {
-                    if appIDs.isEmpty {
-                        Text("No Steam library found. Please add a Steam library folder.")
-                            .lineLimit(1)
+                    if (appIDs.isEmpty) {
+                        ContentUnavailableView {
+                            Label("No Libraries found", systemImage: "gamecontroller")
+                        } description: {
+                            Text("No Steam libraries found.\nPlease add a Steam library folder.")
+                        }
                             .foregroundStyle(.white)
                             .frame(width: windowWidth, height: windowHeight)
                     } else {
@@ -69,7 +72,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showDetailView) {
             Modal(showModal: $showDetailView) {
-                GameDetailView(game: $selectedGame)
+                GameDetailView(game: $selectedGame, showDetailView: $showDetailView)
             }
         }
         .task { await load() }
@@ -95,10 +98,11 @@ struct ContentView: View {
     private func load() async {
         isLoading = true
         progress = 0
+        appIDs.removeAll()
         do {
             folders = getSteamFolderPaths()
-            if  folders.isEmpty {
-                appIDs.removeAll()
+            if folders.isEmpty {
+                print("There are no folders to scan.")
             } else {
                 for folder in folders {
                     let games = try scanSteamFolder(dest: URL(string: folder)!)
@@ -116,9 +120,9 @@ struct ContentView: View {
             }
         }
         defer {
-            isLoading = false
             progressPollTask?.cancel()
             progressPollTask = nil
+            isLoading = false
         }
         do {
             items = try await api.fetchGamesInfo(appIDs: appIDs)

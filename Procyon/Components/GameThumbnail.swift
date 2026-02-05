@@ -38,14 +38,16 @@ struct GameThumbnail: View {
                 Text(item.name)
                     .font(.headline)
                 HStack (spacing: 6){
-                    Tag(item.type)
+                    AccentTag(item.type)
                     if (item.genres != nil && item.genres!.count > 0){
-                        Tag(item.genres!.first!.description)
+                        AccentTag(item.genres!.first!.description)
                     }
                     Spacer()
-                    Button("View") {
+                    Button {
                         showDetailView =  true
                         selectedGame = item
+                    } label: {
+                        Image(systemName: "magnifyingglass")
                     }
                     .font(.caption)
                     .cornerRadius(20)
@@ -61,4 +63,10 @@ struct GameThumbnail: View {
         .background(.black.opacity(0.5))
         .cornerRadius(30)
     }
+}
+
+#Preview {
+    @Previewable @State var showDetailView: Bool = false
+    @Previewable @State var selectedGame: SteamGame? = nil
+    GameThumbnail(item: SteamGame.mock, showDetailView: $showDetailView, selectedGame: $selectedGame)
 }

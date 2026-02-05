@@ -1,0 +1,61 @@
+//
+//  GameHeader.swift
+//  Procyon
+//
+//  Created by Italo Mandara on 05/02/2026.
+//
+
+import SwiftUI
+
+struct GameHeader: View {
+    @Binding var game: SteamGame?
+    @Binding var showDetailView: Bool
+    
+    var developers: String {
+        "Developer: \(game?.developers.joined(separator: ", ") ?? ("Unknown Developer"))"
+    }
+    
+    var publishers: String { // @To do: DRY
+        "Publisher: \(game?.publishers.joined(separator: ", ") ?? ("Unknown Publisher"))"
+    }
+    
+    var body: some View {
+        HStack (alignment: .top) {
+            VStack(alignment: .leading){
+                Text(game!.name).font(.largeTitle.bold())
+                Text(developers).font(.title2)
+                Text(publishers).font(.title3).padding(.bottom)
+            }
+            BigButton(text: "Play", action: {
+                showDetailView = false
+            })
+            Spacer()
+            HStack(alignment: .center){
+                Text("Available on:")
+                if (game!.platforms.mac) {
+                    Image("os-apple")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                }
+                if (game!.platforms.linux) {
+                    Image("os-linux")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                }
+                if (game!.platforms.windows) {
+                    Image("os-win")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 20)
+            .background(.procyonBrightGray)
+            .foregroundStyle(.procyonDarkGray)
+            .clipShape(.capsule)
+        }
+    }
+}
