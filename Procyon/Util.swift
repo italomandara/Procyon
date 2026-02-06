@@ -168,3 +168,38 @@ final class MountObserver {
             .store(in: &cancellables)
     }
 }
+
+func getAllBottles(CXPatched: Bool = false) -> [URL] {
+    let DEFAULT_BOTTLE_PATH = "/Library/Application Support/CrossOver/Bottles/"
+    let f = FileManager.default
+    let bottlePath = f.homeDirectoryForCurrentUser.relativePath + (CXPatched ? "/CXPBottles/" : DEFAULT_BOTTLE_PATH)
+    do {
+        let url = URL(fileURLWithPath: bottlePath)
+        let subfolders: [URL] = try f.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey], options: [])
+        return subfolders.filter { url in
+            (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+        }
+    } catch {
+        print(error.localizedDescription)
+    }
+    return []
+}
+
+@discardableResult
+func safeShell(_ command: String) throws -> String {
+    let task = Process()
+    let pipe = Pipe()
+    
+    task.standardOutput = pipe
+    task.standardError = pipe
+    task.arguments = ["-c", command]
+    task.executableURL = URL(fileURLWithPath: "/bin/zsh")
+    task.standardInput = nil
+
+    try task.run()
+    
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(data: data, encoding: .utf8)!
+    print(output)
+    return output
+}
