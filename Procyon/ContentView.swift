@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-let windowWidth: CGFloat = 1024
-let windowHeight: CGFloat = 750
 
 struct ContentView: View {
     var body: some View {

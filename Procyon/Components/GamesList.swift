@@ -26,7 +26,6 @@ struct GamesList: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.bottom, 60)
         }
     }
 }

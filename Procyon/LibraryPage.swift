@@ -46,24 +46,24 @@ struct LibraryPage: View {
                     .foregroundStyle(.red)
                     .frame(width: windowWidth, height: windowHeight)
             } else {
-                ZStack(alignment: .bottom)  {
-                    if (appIDs.isEmpty) {
-                        ContentUnavailableView {
-                            Label("No Libraries found", systemImage: "gamecontroller")
-                        } description: {
-                            Text("No Steam libraries found.\nPlease add a Steam library folder.")
-                        }
-                            .foregroundStyle(.white)
-                            .frame(width: windowWidth, height: windowHeight)
-                    } else {
-                        GamesList(items: items.filter { item in
-                            filter.isEmpty ||
-                            item.name.lowercased().contains(filter.lowercased())
-                        }, showDetailView: $showDetailView, selectedGame: $selectedGame)
+                if (appIDs.isEmpty) {
+                    ContentUnavailableView {
+                        Label("No Libraries found", systemImage: "gamecontroller")
+                    } description: {
+                        Text("No Steam libraries found.\nPlease add a Steam library folder.")
                     }
-                    Toolbar(filter: $filter, showOptions: $showOptions).padding(.bottom)
+                    .foregroundStyle(.white)
+                    .frame(width: windowWidth, height: windowHeight)
+                } else {
+                    GamesList(items: items.filter { item in
+                        filter.isEmpty ||
+                        item.name.lowercased().contains(filter.lowercased())
+                    }, showDetailView: $showDetailView, selectedGame: $selectedGame)
                 }
             }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 20) {
+            Toolbar(filter: $filter, showOptions: $showOptions).padding(.bottom)
         }
         .sheet(isPresented: $showOptions) {
             OptionsView(showOptions: $showOptions, appIDS: $appIDs, folders: $folders, api: api, load: load)
@@ -85,7 +85,7 @@ struct LibraryPage: View {
             )
         )
         .frame(width: windowWidth, height: windowHeight)
-        .fixedSize()
+//        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .transition(.opacity)
         .onAppear() {
             mntObserver = MountObserver(

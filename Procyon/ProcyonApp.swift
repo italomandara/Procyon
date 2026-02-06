@@ -8,15 +8,17 @@
 import SwiftUI
 import CoreData
 
+let windowWidth: CGFloat = 1024
+let windowHeight: CGFloat = 750
+
 @main
 struct ProcyonApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .defaultSize(width: 1024, height: 600)
+        .defaultSize(width: windowWidth, height: windowHeight)
         .windowResizability(.contentSize)
-//        .windowStyle()
     }
 
 }
