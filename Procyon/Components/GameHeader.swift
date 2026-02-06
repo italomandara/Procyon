@@ -20,18 +20,19 @@ struct GameHeader: View {
     }
     
     var body: some View {
-        HStack (alignment: .top) {
+        HStack (alignment: .bottom) {
             VStack(alignment: .leading){
                 Text(game!.name).font(.largeTitle.bold())
                 Text(developers).font(.title2)
-                Text(publishers).font(.title3).padding(.bottom)
+                Text(publishers).font(.title3)
             }
             BigButton(text: "Play", action: {
                 showDetailView = false
             })
+            .padding(.horizontal, 24)
             Spacer()
             HStack(alignment: .center){
-                Text("Available on:")
+                Text("Available for:")
                 if (game!.platforms.mac) {
                     Image("os-apple")
                         .resizable()
@@ -53,9 +54,12 @@ struct GameHeader: View {
             }
             .padding(.vertical, 10)
             .padding(.horizontal, 20)
-            .background(.procyonBrightGray)
-            .foregroundStyle(.procyonDarkGray)
+            .background(.clear)
+            .overlay(
+                Capsule()
+                    .stroke(.white, lineWidth: 2)
+            )
             .clipShape(.capsule)
-        }
+        }.foregroundStyle(.white)
     }
 }

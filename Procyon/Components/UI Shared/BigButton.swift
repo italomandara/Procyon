@@ -19,9 +19,9 @@ struct BigButton: View {
                 .foregroundStyle(.white)
                 .clipShape(Capsule())
         }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 24)
-            .padding(.top, -12)
+//            .padding(.vertical, 12)
+//            .padding(.horizontal, 24)
+//            .padding(.top, -12)
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
     }

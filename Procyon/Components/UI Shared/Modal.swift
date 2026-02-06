@@ -29,7 +29,9 @@ struct Modal<Content: View>: View {
                 }
                 .background(.white.opacity(0.5))
                 .clipShape(Circle())
-            }.padding()
+            }
+            .padding(.vertical)
+            .padding(.horizontal, 5)
         }
     }
 }

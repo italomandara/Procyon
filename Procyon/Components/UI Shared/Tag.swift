@@ -16,6 +16,7 @@ struct Tag: View {
     
     var body: some View {
         Text(text)
+            .lineLimit(1)
             .foregroundStyle(.procyonDarkGray)
             .padding(.horizontal, 10)
             .padding(.top, 2)
@@ -27,6 +28,6 @@ struct Tag: View {
 
 #Preview {
    VStack {
-        Tag("I'm a tag")
-   }.padding(20)
+        Tag("I'm a tag and I'm proud of it")
+   }.padding(20).frame(width: 200)
 }

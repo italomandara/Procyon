@@ -21,14 +21,23 @@ struct Toolbar: View {
             }
             .frame(width: 25)
             .cornerRadius(20)
-            Button("Store") {
-            }.cornerRadius(20)
+//            Button("Store") {
+//            }.cornerRadius(20)
             Button("Library") {
             }.cornerRadius(20)
             Button("Profile") {
             }.cornerRadius(20)
 
-            TextField("Search Game...", text: $filter).cornerRadius(20).frame(width: 200).foregroundStyle(.foreground)
+            TextField("Search Game...", text: $filter)
+                .textFieldStyle(.plain)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .frame(width: 200)
+                .background(.white.opacity(0.2))
+                .foregroundStyle(.white)
+                .cornerRadius(20)
+                .disableAutocorrection(true)
+                .focusEffectDisabled()
         }
         .padding(6)
         .background(.black.opacity(0.9))

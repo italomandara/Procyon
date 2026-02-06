@@ -16,6 +16,7 @@ struct AccentTag: View {
     
     var body: some View {
         Text(text)
+            .lineLimit(1)
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
             .padding(.top, 2)

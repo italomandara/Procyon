@@ -50,7 +50,7 @@ final class SteamAPI {
     init() {
         loadCache()
     }
-
+    
     private func saveCache() {
         do {
             let encoded = try JSONEncoder().encode(self.cache)
@@ -90,12 +90,13 @@ final class SteamAPI {
             return root.data
         }
     }
-    func fetchGamesInfo(appIDs: [String]) async throws -> [SteamGame] {
+    func fetchGamesInfo(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
         var items: [SteamGame] = []
         let total = appIDs.count
         // Reset progress at start
         self.progress = 0
-
+        setProgress(self.progress)
+        
         for (index, appID) in appIDs.enumerated() {
             if let gameInfo = try await self.fetchGameInfo(appID: appID) {
                 items.append(contentsOf: gameInfo)
@@ -105,12 +106,14 @@ final class SteamAPI {
                 let processed = index + 1
                 let percent = (Double(processed) / Double(total)) * 100.0
                 self.progress = percent
+                setProgress(self.progress)
 //                print(self.progress)
             }
         }
         // Ensure progress is 100% at completion when there were items to process
         if total > 0 {
             self.progress = 100
+            setProgress(self.progress)
         }
         print(items.map(\.id))
         return items

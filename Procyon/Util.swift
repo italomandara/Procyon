@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
+import Combine
 
 func openFolderSelectorPanel() -> URL? {
     let panel = NSOpenPanel()
@@ -144,4 +145,26 @@ func scanSteamFolder(dest: URL) throws -> [String] {
 @MainActor
 func updateSteamGamesList (games: [String], appIDS: inout [String]) -> Void {
     appIDS.append(contentsOf: games)
+}
+
+final class MountObserver {
+    private var cancellables = Set<AnyCancellable>()
+
+    init(onMount: @escaping () -> Void,
+         onUnmount: @escaping () -> Void) {
+
+        let center = NSWorkspace.shared.notificationCenter
+
+        center.publisher(for: NSWorkspace.didMountNotification)
+            .sink { _ in
+                onMount()
+            }
+            .store(in: &cancellables)
+
+        center.publisher(for: NSWorkspace.didUnmountNotification)
+            .sink { _ in
+                onUnmount()
+            }
+            .store(in: &cancellables)
+    }
 }

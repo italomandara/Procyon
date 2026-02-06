@@ -24,7 +24,9 @@ struct GamesList: View {
                 ForEach(items) { item in
                     GameThumbnail(item: item, showDetailView: $showDetailView, selectedGame: $selectedGame)
                 }
-            }.padding()
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 60)
         }
     }
 }

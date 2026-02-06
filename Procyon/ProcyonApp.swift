@@ -16,6 +16,7 @@ struct ProcyonApp: App {
         }
         .defaultSize(width: 1024, height: 600)
         .windowResizability(.contentSize)
+//        .windowStyle()
     }
 
 }
