@@ -33,12 +33,12 @@ struct GameHeader: View {
                 libraryPageGlobals.setLoader(state: true)
                 do {
                     print(try launchWindowsGame( id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", bottleName: bottleName))
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        libraryPageGlobals.setLoader(state: false)
+                    }
                 } catch {
                     libraryPageGlobals.setLoader(state: false)
                     print("Error launching game: \(error)")
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    libraryPageGlobals.setLoader(state: false)
                 }
                 showDetailView = false
             })
