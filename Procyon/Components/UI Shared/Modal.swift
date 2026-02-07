@@ -17,21 +17,10 @@ struct Modal<Content: View>: View {
     }
     
     var body: some View {
-        ZStack (alignment: .topTrailing){
-            ScrollView {
-                content
-            }
-            HStack {
-                Button {
-                    showModal = false
-                } label: {
-                    Image(systemName: "xmark").foregroundStyle(.black)
-                }
-                .background(.white.opacity(0.5))
-                .clipShape(Circle())
-            }
-            .padding(.vertical)
-            .padding(.horizontal, 5)
+        ScrollView {
+            content
+        }.overlay(alignment: .topTrailing) {
+            CloseModalButton(show: $showModal)
         }
     }
 }

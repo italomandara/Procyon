@@ -10,13 +10,17 @@ import CoreData
 
 let windowWidth: CGFloat = 1024
 let windowHeight: CGFloat = 750
+let appWindowResizable: Bool = false
 
 @main
 struct ProcyonApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .frame(width: appWindowResizable ? nil : windowWidth, height: appWindowResizable ? nil : windowHeight)
         }
+        .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unified)
         .defaultSize(width: windowWidth, height: windowHeight)
         .windowResizability(.contentSize)
     }

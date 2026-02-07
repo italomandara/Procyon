@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct Toolbar: View {
+    @EnvironmentObject var router: Router
     @Binding var filter: String
     @Binding var showOptions: Bool
     
@@ -24,8 +25,10 @@ struct Toolbar: View {
 //            Button("Store") {
 //            }.cornerRadius(20)
             Button("Library") {
+                router.go(to: .library)
             }.cornerRadius(20)
             Button("Profile") {
+                router.go(to: .profile)
             }.cornerRadius(20)
 
             TextField("Search Game...", text: $filter)

@@ -6,17 +6,18 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct OptionsView: View {
-    @Binding var showOptions: Bool
-    @Binding var appIDS: [String]
-    @Binding var folders: [String]
-    var api: SteamAPI
+    @State var bottles = getAllBottles(CXPatched: true)
+    @EnvironmentObject var appGlobals: AppGlobals
+    @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
+    var deleteCache: () -> Void
     var load: () async -> Void
     
     var body: some View {
         Modal(
-            showModal: $showOptions,
+            showModal: $libraryPageGlobals.showOptions,
         ) {
             VStack (alignment: .center){
                 Text("Options")
@@ -24,13 +25,13 @@ struct OptionsView: View {
                 VStack(alignment: .leading) {
                     Text("Game libraries").padding(.horizontal, 10)
                     List {
-                        ForEach(folders, id: \.self) {folder in
+                        ForEach(libraryPageGlobals.folders, id: \.self) {folder in
                             HStack{
                                 Text(extractFolderNameRegex(folder))
                                 Spacer()
                                 Button(action: {
                                     removeSteamFolderPath(folder)
-                                    folders = getSteamFolderPaths()
+                                    libraryPageGlobals.folders = getSteamFolderPaths()
                                     Task { await load() }
                                 }) {
                                     Image(systemName: "trash")
@@ -43,7 +44,7 @@ struct OptionsView: View {
                     Button(action: {
                         if let url = openFolderSelectorPanel() {
                             addSteamFolderPaths(url)
-                            folders.append(url.path)
+                            libraryPageGlobals.folders.append(url.absoluteString)
                             Task { await load() }
                         }
                     }) {
@@ -55,12 +56,29 @@ struct OptionsView: View {
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                    .stroke(.gray)
+                        .stroke(.gray)
                 )
                 .padding(.bottom)
+                Button(URL(string: appGlobals.cxAppPath ?? "")?.lastPathComponent ?? "Select a Crossover App...") {
+                    if let url = openFolderSelectorPanel(type: .application) {
+                        appGlobals.cxAppPath = url.relativePath
+                        persistUsrDefOptionString(key: "cxAppPath", value: url.relativePath)
+                    }
+                }
+                Picker("Select a bottle", selection: $appGlobals.selectedBottle) {
+                    Text("No bottle selected").tag("")
+                    ForEach(bottles, id: \.absoluteString) { bottle in
+                        let text = bottle.pathComponents.suffix(2).joined(separator: "/")
+                        Text(text).tag(bottle.absoluteString)
+                    }
+                }.onChange(of: appGlobals.selectedBottle) { oldValue, newValue in
+                    if(newValue != nil && newValue != "") {
+                        persistUsrDefOptionString(key: "selectedBottle", value: newValue!)
+                    }
+                }
                 Spacer()
                 HStack {
-                    Button(action: { api.deleteCache() }) {
+                    Button(action: { deleteCache() }) {
                         Label("Delete cache", systemImage: "trash")
                     }
                     .cornerRadius(20)
@@ -78,16 +96,8 @@ struct OptionsView: View {
 }
 
 #Preview {
-    // Stub implementations for preview
-    @State @Previewable var show = true
-    @State @Previewable var appIDS: [String] = []
-    @State @Previewable var folders : [String] = ["/example/path", "/example/path", "/example/path", "/example/path"]
-    
     OptionsView(
-        showOptions: .constant(true),
-        appIDS: $appIDS,
-        folders: $folders,
-        api: SteamAPI(),
+        deleteCache: { },
         load: { },
     )
 }

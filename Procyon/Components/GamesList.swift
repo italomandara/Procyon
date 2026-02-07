@@ -15,17 +15,18 @@ let columns = [
 
 struct GamesList: View {
     let items: [SteamGame]
-    @Binding var showDetailView: Bool
-    @Binding var selectedGame: SteamGame?
+    @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(items) { item in
-                    GameThumbnail(item: item, showDetailView: $showDetailView, selectedGame: $selectedGame)
+                    GameThumbnail(item: item)
                 }
             }
             .padding(.horizontal)
+        }.safeAreaInset(edge: .bottom, spacing: nil) {
+            Toolbar(filter: $libraryPageGlobals.filter, showOptions: $libraryPageGlobals.showOptions).padding()
         }
     }
 }

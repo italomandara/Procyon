@@ -10,12 +10,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 import Combine
 
-func openFolderSelectorPanel() -> URL? {
+func openFolderSelectorPanel(type: UTType = .folder) -> URL? {
     let panel = NSOpenPanel()
     panel.title = "Select a Steam library folder (steamapps)";
     panel.allowsMultipleSelection = false;
     panel.canChooseDirectories = true;
-    panel.allowedContentTypes = [.folder]
+    panel.allowedContentTypes = [type]
     return panel.runModal() == .OK ? panel.url?.absoluteURL : nil
 }
 
@@ -30,6 +30,15 @@ func persistFolderAccess(url: URL) throws {
     var bookmarks = groupDefaults.array(forKey: "steamLibraryBookmarks") as? [Data] ?? []
     bookmarks.append(bookmark)
     groupDefaults.set(bookmarks, forKey: "steamLibraryBookmarks")
+}
+
+func persistUsrDefOptionString(key: String, value: String) {
+    let groupDefaults = UserDefaults(suiteName: "group.com.italomandara.procyon")!
+    groupDefaults.set(value, forKey: key)
+}
+
+func readUsrDefOptionString(key: String) -> String? {
+    return UserDefaults(suiteName: "group.com.italomandara.procyon")!.value(forKey: key) as? String
 }
 
 func resolvePersistedFolders() -> [URL] {
@@ -170,12 +179,22 @@ final class MountObserver {
 }
 
 func getAllBottles(CXPatched: Bool = false) -> [URL] {
-    let DEFAULT_BOTTLE_PATH = "/Library/Application Support/CrossOver/Bottles/"
+//    let DEFAULT_BOTTLE_PATH = "Library/Application Support/CrossOver/Bottles/"
     let f = FileManager.default
-    let bottlePath = f.homeDirectoryForCurrentUser.relativePath + (CXPatched ? "/CXPBottles/" : DEFAULT_BOTTLE_PATH)
+    let base = f.homeDirectoryForCurrentUser
+    let bottlePath: URL = base
+        .appendingPathComponent("Library", isDirectory: true)
+        .appendingPathComponent("Application Support", isDirectory: true)
+        .appendingPathComponent("CrossOver", isDirectory: true)
+        .appendingPathComponent("Bottles", isDirectory: true)
+    let bottlePathForCXP: URL = base.appendingPathComponent("CXPBottles", isDirectory: true)
+    
+    print(bottlePath)
     do {
-        let url = URL(fileURLWithPath: bottlePath)
-        let subfolders: [URL] = try f.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey], options: [])
+        var subfolders: [URL] = try f.contentsOfDirectory(at: bottlePath, includingPropertiesForKeys: [.isDirectoryKey], options: [])
+        if(CXPatched == true) {
+            subfolders.append(contentsOf: try f.contentsOfDirectory(at: bottlePathForCXP, includingPropertiesForKeys: [.isDirectoryKey], options: []))
+        }
         return subfolders.filter { url in
             (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
         }
@@ -202,4 +221,10 @@ func safeShell(_ command: String) throws -> String {
     let output = String(data: data, encoding: .utf8)!
     print(output)
     return output
+}
+
+@discardableResult
+func launchWindowsGame(id: String, cxAppPath: String, bottleName: String) throws -> String {
+    print("attempting to run steam.exe on game id \(id)")
+    return try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))")
 }
