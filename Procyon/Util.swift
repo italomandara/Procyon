@@ -217,10 +217,11 @@ func safeShell(_ command: String) throws -> String {
 
     try task.run()
     
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    let output = String(data: data, encoding: .utf8)!
-    print(output)
-    return output
+//    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+//    let output = String(data: data, encoding: .utf8)!
+//    print(output)
+//    return output
+    return "OK"
 }
 
 @discardableResult

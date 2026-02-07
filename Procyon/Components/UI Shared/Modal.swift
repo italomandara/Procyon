@@ -17,9 +17,10 @@ struct Modal<Content: View>: View {
     }
     
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical) {
             content
-        }.overlay(alignment: .topTrailing) {
+        }
+        .overlay(alignment: .topTrailing) {
             CloseModalButton(show: $showModal)
         }
     }

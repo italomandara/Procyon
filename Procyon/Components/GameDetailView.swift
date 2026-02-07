@@ -86,7 +86,11 @@ struct GameDetailView: View {
                     
                     if(game!.screenshots != nil && game!.screenshots!.count > 0) {
                         Text("Screenshots:").font(.title2)
-                        HFlow {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(maximum: .infinity)),
+                            GridItem(.flexible(maximum: .infinity)),
+                            GridItem(.flexible(maximum: .infinity))
+                        ]) {
                             ForEach(game!.screenshots!, id: \.id) { screenshot in
                                 KFImage(URL(string: screenshot.pathThumbnail))
                                     .placeholder {
@@ -94,13 +98,17 @@ struct GameDetailView: View {
                                     }
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 180, height: 100)
+//                                    .frame(width: 180, height: 100)
                             }
                         }.padding(.bottom)
                     }
                     if (game!.movies != nil) {
                         Text("Videos:").font(.title2)
-                        HFlow {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(maximum: .infinity)),
+                            GridItem(.flexible(maximum: .infinity)),
+                            GridItem(.flexible(maximum: .infinity))
+                        ]) {
                             ForEach(game!.movies!, id: \.id) { movie in
                                 KFImage(URL(string: movie.thumbnail))
                                     .placeholder {
@@ -108,7 +116,7 @@ struct GameDetailView: View {
                                     }
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 180, height: 100)
+//                                    .frame(width: 180, height: 100)
                             }
                         }
                         .padding(.bottom)
