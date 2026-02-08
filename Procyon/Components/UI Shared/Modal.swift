@@ -22,6 +22,6 @@ struct Modal<Content: View>: View {
         }
         .overlay(alignment: .topTrailing) {
             CloseModalButton(show: $showModal)
-        }
+        }.padding(.horizontal, 5)
     }
 }

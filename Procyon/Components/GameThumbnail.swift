@@ -56,7 +56,7 @@ struct GameThumbnail: View {
                             libraryPageGlobals.setLoader(state: true)
                             do {
                                 print(try launchWindowsGame( id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", bottleName: bottleName))
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                                     libraryPageGlobals.setLoader(state: false)
                                 }
                             } catch {
