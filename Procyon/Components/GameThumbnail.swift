@@ -13,8 +13,6 @@ struct GameThumbnail: View {
     @EnvironmentObject var appGlobals: AppGlobals
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     
-    
-    
     var body: some View {
         Button(action: {
             libraryPageGlobals.showDetailView =  true
@@ -52,16 +50,17 @@ struct GameThumbnail: View {
                         
                         Button {
                             libraryPageGlobals.selectedGame = item
-                            let bottleName = URL(string: appGlobals.selectedBottle!)?.lastPathComponent ?? ""
                             libraryPageGlobals.setLoader(state: true)
-                            do {
-                                print(try launchWindowsGame( id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", bottleName: bottleName))
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                            Task {
+                                do {
+                                    try await launchWindowsGame( id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                                        libraryPageGlobals.setLoader(state: false)
+                                    }
+                                } catch {
+                                    print(error)
                                     libraryPageGlobals.setLoader(state: false)
                                 }
-                            } catch {
-                                print(error)
-                                libraryPageGlobals.setLoader(state: false)
                             }
                         } label: {
                             Label("Play", systemImage: "play.fill")

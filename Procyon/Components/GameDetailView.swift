@@ -16,6 +16,7 @@ struct GameDetailView: View {
     @State private var isMuted: Bool = true
 //    @Binding var showDetailView: Bool
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
+    @StateObject var gameOptions = GameOptions()
     
     var body: some View {
         if (game != nil) {
@@ -60,6 +61,21 @@ struct GameDetailView: View {
                         .padding(.bottom, game!.movies != nil ? 20 : 0)
                 }
                 VStack (alignment: .leading) {
+                    Text("Advanced options")
+                    HStack {
+                        Picker("Graphics Backend", selection: $gameOptions.cxGraphicsBackend) {
+                            Text("D3DMetal")
+                                .tag("d3dmetal")
+                            Text("DXMT")
+                                .tag("dxmt")
+                        }.pickerStyle(.menu)
+                        Toggle("MSync", isOn: $gameOptions.wineMSync)
+                        Toggle("Metal HUD", isOn: $gameOptions.mtlHudEnabled)
+                        TextField("Game arguments", text: $gameOptions.gameArguments)
+                    }
+//                    .padding()
+                    .padding(.bottom)
+                    
                     if (game!.genres != nil && game!.genres!.count > 0){
                         Text("Genre:")
                         HFlow(alignment: .center) {
@@ -127,6 +143,7 @@ struct GameDetailView: View {
                 .padding(.bottom, 20)
             }
             .frame(width: windowWidth - 100)
+            .environmentObject(gameOptions)
         }
     }
 }

@@ -224,8 +224,131 @@ func safeShell(_ command: String) throws -> String {
     return "OK"
 }
 
-@discardableResult
-func launchWindowsGame(id: String, cxAppPath: String, bottleName: String) throws -> String {
-    print("attempting to run steam.exe on game id \(id)")
-    return try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))")
+func modifyBottleSettingOptions(selectedBottle: String, options: [String: String]) {
+    options.forEach { option in
+        print(option)
+    }
 }
+
+func closeWineActivities(cxAppPath: String) async throws {
+    // Wait for graceful termination, then escalate to forceTerminate, then give a final wait
+    let gracePeriod: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
+    let pollInterval: UInt64 = 200_000_000  // 0.2 seconds in nanoseconds
+    let forceTimeout: UInt64 = 6_000_000_000 // ~6 seconds total before force
+    let absoluteTimeout: UInt64 = 12_000_000_000 // ~12 seconds absolute timeout
+    print("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wineserver -k")
+    //    try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wineserver -k")
+    
+    // Capture the target apps first to avoid the list changing while iterating
+    let targets = NSWorkspace.shared.runningApplications.filter { app in
+        guard let url = app.executableURL else { return false }
+        return url.lastPathComponent.lowercased().hasSuffix(".exe")
+    }
+
+    // Send terminate to all matching apps
+    for app in targets {
+        if let name = app.executableURL?.lastPathComponent {
+            print("terminating \(name)")
+        }
+        app.terminate()
+    }
+
+    // Helper to check if all targets have terminated
+    func allTerminated(_ apps: [NSRunningApplication]) -> Bool {
+        apps.allSatisfy { $0.isTerminated }
+    }
+
+    var elapsed: UInt64 = 0
+    // First grace period loop
+    while !allTerminated(targets) && elapsed < gracePeriod {
+        try await Task.sleep(nanoseconds: pollInterval)
+        elapsed += pollInterval
+    }
+
+    // If still not all terminated after grace period, escalate with forceTerminate
+    if !allTerminated(targets) {
+        for app in targets where !app.isTerminated {
+            print("force terminating \(app.executableURL?.lastPathComponent ?? "<unknown>")")
+            app.forceTerminate()
+        }
+    }
+
+    // Final wait until absolute timeout or done
+    while !allTerminated(targets) && elapsed < absoluteTimeout {
+        try await Task.sleep(nanoseconds: pollInterval)
+        elapsed += pollInterval
+    }
+}
+
+func toCrossoverENVString(_ key: String, _ value: String) -> String {
+    return "\"\(key)\"=\"\(value)\""
+}
+
+func getCXBottleConfigFileURL(selectedBottle: String) -> URL? {
+    return URL(string: selectedBottle)?.appendingPathComponent("cxbottle.conf")
+}
+
+func editCXBottleConfigFile(selectedBottle: String, options: [String: String]) throws {
+    let bottleURL = getCXBottleConfigFileURL(selectedBottle: selectedBottle)
+    let original = try String(contentsOf: bottleURL!, encoding: .utf8)
+    let lines = original.components(separatedBy: .newlines)
+    let newLines = lines.map { line in
+        for (key, value) in options {
+            if(line.hasPrefix("\"\(key)\"")) {
+                return toCrossoverENVString(key, value)
+            }
+        }
+        return line
+    }
+    let updated = newLines.joined(separator: "\n")
+    try updated.write(to: bottleURL!, atomically: true, encoding: .utf8)
+}
+
+enum CXGraphicsBackend: String {
+    case dxmt = "dxmt"
+    case d3dmetal = "d3dmetal"
+    case wine = "wine"
+    case dxvk = "dxvk"
+}
+
+enum OnOff: String {
+    case off = "0"
+    case on = "1"
+}
+
+class GameOptions: ObservableObject {
+    @Published var cxGraphicsBackend: String = "d3dmetal"
+    @Published var wineMSync: Bool = true
+    @Published var mtlHudEnabled: Bool = true
+    @Published var dxvk: String?
+    @Published var wineEsync: String?
+    @Published var d3dMEnableMetalFX: String?
+    @Published var d3dSupportDXR: String?
+    @Published var gameArguments: String = ""
+}
+
+func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil) async throws {
+    if(options != nil){
+        let optionsDictionary = [
+            "CX_GRAPHICS_BACKEND": options!.cxGraphicsBackend,
+            "WINEMSYNC": options!.wineMSync ? "1" : "0",
+            "MTL_HUD_ENABLED": options!.mtlHudEnabled ? "1" : "0"
+        ]
+        print("applying config changes to the bottle \(selectedBottle)...")
+        try editCXBottleConfigFile(selectedBottle: selectedBottle, options: optionsDictionary)
+    }
+    let bottleName = URL(string: selectedBottle)?.lastPathComponent ?? ""
+    print("Closing all wine activities...")
+    try await closeWineActivities(cxAppPath: cxAppPath)
+    print("attempting to run steam.exe on game id \(id)")
+    let mtlHudEnabled = options != nil && options!.mtlHudEnabled ? "1" : "0"
+    let arguments = options != nil ? " " + options!.gameArguments : ""
+    try safeShell("MTL_HUD_ENABLED=\(mtlHudEnabled) \(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments)
+}
+
+func installGame(id: String) {
+//    https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip
+//    steamcmd +login YOUR_USERNAME +app_update 1489410 validate +quit
+//    steamcmd +login USER +force_install_dir "C:\Program Files (x86)\Steam\steamapps\common\MyGame" +app_update 1489410 validate +quit
+}
+

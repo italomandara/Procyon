@@ -129,7 +129,8 @@ struct LibraryPage: View {
             .onDisappear {
                 mntObserver = nil
             }
-        }.environmentObject(libraryPageGlobals)
+        }
+        .environmentObject(libraryPageGlobals)
     }
     
     @MainActor

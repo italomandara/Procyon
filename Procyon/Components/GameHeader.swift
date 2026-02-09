@@ -12,6 +12,7 @@ struct GameHeader: View {
     @Binding var showDetailView: Bool
     @EnvironmentObject var appGlobals: AppGlobals
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
+    @EnvironmentObject var gameOptions: GameOptions
     
     var developers: String {
         "Developer: \(game?.developers.joined(separator: ", ") ?? ("Unknown Developer"))"
@@ -29,18 +30,19 @@ struct GameHeader: View {
                 Text(publishers).font(.title3)
             }
             BigButton(text: "Play", action: {
-                let bottleName = URL(string: appGlobals.selectedBottle!)?.lastPathComponent ?? ""
                 libraryPageGlobals.setLoader(state: true)
-                do {
-                    print(try launchWindowsGame( id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", bottleName: bottleName))
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                Task {
+                    do {
+                        try await launchWindowsGame( id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                            libraryPageGlobals.setLoader(state: false)
+                        }
+                    } catch {
                         libraryPageGlobals.setLoader(state: false)
+                        print("Error launching game: \(error)")
                     }
-                } catch {
-                    libraryPageGlobals.setLoader(state: false)
-                    print("Error launching game: \(error)")
+                    showDetailView = false
                 }
-                showDetailView = false
             })
             .padding(.horizontal, 24)
             Spacer()
