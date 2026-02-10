@@ -85,6 +85,11 @@ struct LibraryPage: View {
                             ContentUnavailableView {
                                 Label("No Libraries found", systemImage: "gamecontroller")
                                     .padding(.bottom)
+                                Button {
+                                    libraryPageGlobals.showOptions = true
+                                } label: {
+                                    Label("Add Library", systemImage: "plus")
+                                }
                             } description: {
                                 Text("No Steam libraries found.\nPlease add a Steam library folder.")
                                 Button {
@@ -105,9 +110,9 @@ struct LibraryPage: View {
                 OptionsView(deleteCache: api.deleteCache, load: load)
             }
             .sheet(isPresented: $libraryPageGlobals.showDetailView) {
-                Modal(showModal: $libraryPageGlobals.showDetailView) {
+                Modal(showModal: $libraryPageGlobals.showDetailView, collapse: true, content:  {
                     GameDetailView(game: $libraryPageGlobals.selectedGame)
-                }
+                })
             }
             .task { await load() }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -141,7 +146,7 @@ struct LibraryPage: View {
         do {
             libraryPageGlobals.folders = getSteamFolderPaths()
             if libraryPageGlobals.folders.isEmpty {
-                print("There are no folders to scan.")
+                console.warn("There are no folders to scan.")
             } else {
                 for folder in libraryPageGlobals.folders {
                     let games = try scanSteamFolder(dest: URL(string: folder)!)
@@ -149,7 +154,7 @@ struct LibraryPage: View {
                 }
             }
         } catch {
-            print(error)
+            console.error(error.localizedDescription)
         }
 
         defer {
@@ -157,11 +162,13 @@ struct LibraryPage: View {
         }
         
         do {
-            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+//            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+            progress = 50
+            items = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
             progress = 100
         } catch {
             errorMessage = error.localizedDescription
-            print(error)
+            console.error(error.localizedDescription)
         }
     }
 }

@@ -58,7 +58,7 @@ struct GameThumbnail: View {
                                         libraryPageGlobals.setLoader(state: false)
                                     }
                                 } catch {
-                                    print(error)
+                                    console.warn(error.localizedDescription)
                                     libraryPageGlobals.setLoader(state: false)
                                 }
                             }

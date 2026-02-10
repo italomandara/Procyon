@@ -9,10 +9,12 @@ import SwiftUI
 
 struct Modal<Content: View>: View {
     @Binding var showModal: Bool
+    var collapse: Bool? = false
     let content: Content
     
-    init(showModal: Binding<Bool>, @ViewBuilder content: () -> Content) {
+    init(showModal: Binding<Bool>, collapse: Bool? = nil, @ViewBuilder content: () -> Content) {
         self._showModal = showModal
+        self.collapse = collapse
         self.content = content()
     }
     
@@ -22,6 +24,6 @@ struct Modal<Content: View>: View {
         }
         .overlay(alignment: .topTrailing) {
             CloseModalButton(show: $showModal)
-        }.padding(.horizontal, 5)
+        }.padding(.horizontal, collapse == true ? 0 : 5)
     }
 }

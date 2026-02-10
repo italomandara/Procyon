@@ -12,10 +12,16 @@ let apiKey = Bundle.main.object(forInfoDictionaryKey: "API_KEY") as! String
 let pr = Bundle.main.object(forInfoDictionaryKey: "API_PROTOCOL") as! String
 let host = Bundle.main.object(forInfoDictionaryKey: "API_HOST") as! String
 let path = Bundle.main.object(forInfoDictionaryKey: "API_PATH") as! String
+let pathm = Bundle.main.object(forInfoDictionaryKey: "API_PATH_M") as! String
 
 let baseAPIURL = "\(pr)://\(host)\(path)"
+let baseAPIMURL = "\(pr)://\(host)\(pathm)"
 
 struct SteamGameResponse: Codable, Sendable {
+    let data: [SteamGame]
+}
+
+struct SteamGameResponseArray: Codable, Sendable {
     let data: [SteamGame]
 }
 
@@ -40,10 +46,10 @@ final class SteamAPI {
             let decoded = try JSONDecoder().decode([String: [SteamGame]].self, from: data)
             self.cache = decoded
             self.hasCache = true
-            print("Cache loaded")
+            console.warn("Cache loaded")
         } catch {
             self.hasCache = false
-            print("Cache is empty")
+            console.warn("Cache is empty")
         }
     }
     
@@ -56,20 +62,20 @@ final class SteamAPI {
             let encoded = try JSONEncoder().encode(self.cache)
             try encoded.write(to: self.cacheURL, options: [.atomic])
             self.hasCache = true
-            print("Cache saved")
+            console.warn("Cache saved")
         } catch {
-            print(error)
+            console.error(error.localizedDescription)
         }
     }
     func deleteCache() {
         try? FileManager.default.removeItem(at: cacheURL)
         self.cache.removeAll()
         self.hasCache = true
-        print("Cache deleted")
+        console.warn("Cache deleted")
     }
     func fetchGameInfo(appID: String) async throws -> [SteamGame]? {
         if let cached = cache[appID] {
-//            print("Returning from cache for id \(appID)")
+//            console.warn("Returning from cache for id \(appID)")
             return cached
         }
         
@@ -84,7 +90,7 @@ final class SteamAPI {
             
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
             
-//            print("Decoded \(root.data.count) items for game \(appID)")
+//            console.warn("Decoded \(root.data.count) items for game \(appID)")
             cache[appID] = root.data
             saveCache()
             return root.data
@@ -107,7 +113,7 @@ final class SteamAPI {
                 let percent = (Double(processed) / Double(total)) * 100.0
                 self.progress = percent
                 setProgress(self.progress)
-//                print(self.progress)
+//                console.warn(self.progress)
             }
         }
         // Ensure progress is 100% at completion when there were items to process
@@ -115,8 +121,28 @@ final class SteamAPI {
             self.progress = 100
             setProgress(self.progress)
         }
-        print(items.map(\.id))
+        console.warn("\(items.map(\.id))")
         return items
+    }
+    func fetchGameInfoArray(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
+        console.warn("[\(appIDs.joined(separator: ","))]")
+        let urlString = "\(baseAPIMURL)?appids=\(appIDs.joined(separator: ","))"
+        let headers: HTTPHeaders = ["x-api-key": apiKey]
+
+        do {
+            let data = try await AF.request(urlString, method: .get, headers: headers)
+                .validate(statusCode: 200..<300)
+                .serializingData()
+                .value
+           
+            let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
+            
+            setProgress(100)
+            return root.data
+        } catch {
+            console.error(error.localizedDescription)
+        }
+        return []
     }
 }
 

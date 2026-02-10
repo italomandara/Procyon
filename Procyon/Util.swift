@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 import Combine
+import os
 
 func openFolderSelectorPanel(type: UTType = .folder) -> URL? {
     let panel = NSOpenPanel()
@@ -89,18 +90,18 @@ func withSecurityScope<T>(for url: URL, _ body: () throws -> T) rethrows -> T? {
 func addSteamFolderPaths(_ url: URL) {
     do {
         if (try scanSteamFolder(dest: url).isEmpty) {
-            print("Folder is empty")
+            console.warn("Folder is empty")
             return
         }
     } catch {
-        print("Failed to validate steam folder")
-        print(error)
+        console.warn("Failed to validate steam folder")
+        console.error(error.localizedDescription)
     }
     do {
         try persistFolderAccess(url: url)
     } catch {
-        print("Failed to save steam folder")
-        print(error)
+        console.warn("Failed to save steam folder")
+        console.error(error.localizedDescription)
     }
 }
 
@@ -189,17 +190,25 @@ func getAllBottles(CXPatched: Bool = false) -> [URL] {
         .appendingPathComponent("Bottles", isDirectory: true)
     let bottlePathForCXP: URL = base.appendingPathComponent("CXPBottles", isDirectory: true)
     
-    print(bottlePath)
+    console.warn(bottlePath.absoluteString)
     do {
         var subfolders: [URL] = try f.contentsOfDirectory(at: bottlePath, includingPropertiesForKeys: [.isDirectoryKey], options: [])
         if(CXPatched == true) {
-            subfolders.append(contentsOf: try f.contentsOfDirectory(at: bottlePathForCXP, includingPropertiesForKeys: [.isDirectoryKey], options: []))
+            do {
+                subfolders.append(contentsOf: try f.contentsOfDirectory(at: bottlePathForCXP, includingPropertiesForKeys: [.isDirectoryKey], options: []))
+            } catch {
+                console.warn(error.localizedDescription)
+                console.warn("couldn't find the CXPatched bottles")
+            }
         }
-        return subfolders.filter { url in
+        console.warn("subfolders \(subfolders.debugDescription)")
+        let filtered = subfolders.filter { url in
             (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
         }
+        console.warn("filtered: \(filtered.debugDescription)")
+        return filtered
     } catch {
-        print(error.localizedDescription)
+        console.warn(error.localizedDescription)
     }
     return []
 }
@@ -219,14 +228,14 @@ func safeShell(_ command: String) throws -> String {
     
 //    let data = pipe.fileHandleForReading.readDataToEndOfFile()
 //    let output = String(data: data, encoding: .utf8)!
-//    print(output)
+//    console.warn(output)
 //    return output
     return "OK"
 }
 
 func modifyBottleSettingOptions(selectedBottle: String, options: [String: String]) {
     options.forEach { option in
-        print(option)
+        console.warn("key: \(option.key), value: \(option.value)")
     }
 }
 
@@ -247,7 +256,7 @@ func closeWineActivities(cxAppPath: String, bottleName: String) async throws {
     // Send terminate to all matching apps
     for app in targets {
         if let name = app.executableURL?.lastPathComponent {
-            print("terminating \(name)")
+            console.warn("terminating \(name)")
         }
         app.terminate()
     }
@@ -267,7 +276,7 @@ func closeWineActivities(cxAppPath: String, bottleName: String) async throws {
     // If still not all terminated after grace period, escalate with terminate
     if !allTerminated(targets) {
         for app in targets where !app.isTerminated {
-            print("force terminating \(app.executableURL?.lastPathComponent ?? "<unknown>")")
+            console.warn("force terminating \(app.executableURL?.lastPathComponent ?? "<unknown>")")
             app.forceTerminate()
         }
     }
@@ -353,15 +362,15 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
             "WINEMSYNC": options!.wineMSync ? "1" : "0",
             "MTL_HUD_ENABLED": options!.mtlHudEnabled ? "1" : "0"
         ]
-        print("applying config changes to the bottle \(selectedBottle)...")
+        console.warn("applying config changes to the bottle \(selectedBottle)...")
         try editCXBottleConfigFile(selectedBottle: selectedBottle, options: optionsDictionary)
     }
     let bottleName = URL(string: selectedBottle)?.lastPathComponent ?? ""
-    print("restarting bottle...")
+    console.warn("restarting bottle...")
     try await closeWineActivities(cxAppPath: cxAppPath, bottleName: bottleName)
 //    try await quitSteam(cxAppPath: cxAppPath, bottleName: bottleName)
 
-    print("attempting to run steam.exe on game id \(id)")
+    console.warn("attempting to run steam.exe on game id \(id)")
     let mtlHudEnabled = options != nil && options!.mtlHudEnabled ? "1" : "0"
     let arguments = options != nil ? " " + options!.gameArguments : ""
     try safeShell("MTL_HUD_ENABLED=\(mtlHudEnabled) \(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments)
@@ -373,3 +382,46 @@ func installGame(id: String) {
 //    steamcmd +login USER +force_install_dir "C:\Program Files (x86)\Steam\steamapps\common\MyGame" +app_update 1489410 validate +quit
 }
 
+let logger = Logger(subsystem: "CXPatcher", category: "util")
+
+class Console {
+    var logMessages: [String] = []
+    let f = FileManager.default
+    
+    func log(_ msg: String) {
+        console.warn(msg)
+//        logMessages.append(msg)
+    }
+    func warn(_ msg: String) {
+        print(msg)
+//        logMessages.append(msg)
+        logger.notice("\(msg)")
+    }
+    func error(_ msg: String) {
+        let errorMsg: String = "ERROR: \(msg)"
+        logger.error("\(errorMsg)")
+        console.warn(errorMsg)
+//        logMessages.append(errorMsg)
+    }
+    func clear() {
+        self.logMessages.removeAll()
+    }
+//    func saveLogs(to: URL) {
+//        if f.fileExists(atPath: to.path()) {
+//            do {
+//                try f.removeItem(at: to)
+//            } catch {
+//                console.error(error.localizedDescription)
+//            }
+//        }
+//        let content = logMessages.joined(separator: "\n")
+//        console.warn("Saving logs to \(to)")
+//        do {
+//            try content.write(to: to, atomically: true, encoding: .utf8)
+//        } catch {
+//            console.error(error.localizedDescription)
+//        }
+//    }
+}
+
+let console = Console()

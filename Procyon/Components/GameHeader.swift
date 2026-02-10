@@ -39,7 +39,7 @@ struct GameHeader: View {
                         }
                     } catch {
                         libraryPageGlobals.setLoader(state: false)
-                        print("Error launching game: \(error)")
+                        console.warn("Error launching game: \(error)")
                     }
                     showDetailView = false
                 }
