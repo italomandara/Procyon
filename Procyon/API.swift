@@ -104,8 +104,12 @@ final class SteamAPI {
         setProgress(self.progress)
         
         for (index, appID) in appIDs.enumerated() {
-            if let gameInfo = try await self.fetchGameInfo(appID: appID) {
-                items.append(contentsOf: gameInfo)
+            do {
+                if let gameInfo = try await self.fetchGameInfo(appID: appID) {
+                    items.append(contentsOf: gameInfo)
+                }
+            } catch {
+                console.warn(error.localizedDescription)
             }
             // Update progress as percentage of total processed
             if total > 0 {

@@ -162,9 +162,9 @@ struct LibraryPage: View {
         }
         
         do {
-//            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
-            progress = 50
-            items = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+//            progress = 50
+//            items = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
             progress = 100
         } catch {
             errorMessage = error.localizedDescription
