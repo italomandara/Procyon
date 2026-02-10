@@ -230,14 +230,13 @@ func modifyBottleSettingOptions(selectedBottle: String, options: [String: String
     }
 }
 
-func closeWineActivities(cxAppPath: String) async throws {
+func closeWineActivities(cxAppPath: String, bottleName: String) async throws {
     // Wait for graceful termination, then escalate to forceTerminate, then give a final wait
     let gracePeriod: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
     let pollInterval: UInt64 = 200_000_000  // 0.2 seconds in nanoseconds
-    let forceTimeout: UInt64 = 6_000_000_000 // ~6 seconds total before force
+//    let forceTimeout: UInt64 = 6_000_000_000 // ~6 seconds total before force
     let absoluteTimeout: UInt64 = 12_000_000_000 // ~12 seconds absolute timeout
-    print("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wineserver -k")
-    //    try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wineserver -k")
+
     
     // Capture the target apps first to avoid the list changing while iterating
     let targets = NSWorkspace.shared.runningApplications.filter { app in
@@ -265,7 +264,7 @@ func closeWineActivities(cxAppPath: String) async throws {
         elapsed += pollInterval
     }
 
-    // If still not all terminated after grace period, escalate with forceTerminate
+    // If still not all terminated after grace period, escalate with terminate
     if !allTerminated(targets) {
         for app in targets where !app.isTerminated {
             print("force terminating \(app.executableURL?.lastPathComponent ?? "<unknown>")")
@@ -274,6 +273,26 @@ func closeWineActivities(cxAppPath: String) async throws {
     }
 
     // Final wait until absolute timeout or done
+    while !allTerminated(targets) && elapsed < absoluteTimeout {
+        try await Task.sleep(nanoseconds: pollInterval)
+        elapsed += pollInterval
+    }
+}
+
+func quitSteam(cxAppPath: String, bottleName: String) async throws {
+    let absoluteTimeout: UInt64 = 2_000_000_000
+    let pollInterval: UInt64 = 200_000_000
+    var elapsed: UInt64 = 0
+    let targets = NSWorkspace.shared.runningApplications.filter { app in
+        guard let url = app.executableURL else { return false }
+        return url.lastPathComponent.lowercased().hasSuffix(".exe")
+    }
+    func allTerminated(_ apps: [NSRunningApplication]) -> Bool {
+        apps.allSatisfy { $0.isTerminated }
+    }
+    try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -shutdown")
+    try await Task.sleep(nanoseconds: 2_000_000_000)
+    try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) wineserver -k")
     while !allTerminated(targets) && elapsed < absoluteTimeout {
         try await Task.sleep(nanoseconds: pollInterval)
         elapsed += pollInterval
@@ -338,8 +357,10 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
         try editCXBottleConfigFile(selectedBottle: selectedBottle, options: optionsDictionary)
     }
     let bottleName = URL(string: selectedBottle)?.lastPathComponent ?? ""
-    print("Closing all wine activities...")
-    try await closeWineActivities(cxAppPath: cxAppPath)
+    print("restarting bottle...")
+    try await closeWineActivities(cxAppPath: cxAppPath, bottleName: bottleName)
+//    try await quitSteam(cxAppPath: cxAppPath, bottleName: bottleName)
+
     print("attempting to run steam.exe on game id \(id)")
     let mtlHudEnabled = options != nil && options!.mtlHudEnabled ? "1" : "0"
     let arguments = options != nil ? " " + options!.gameArguments : ""
