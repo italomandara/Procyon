@@ -33,12 +33,6 @@ struct LibraryPage: View {
     @State private var mntObserver: MountObserver?
     
     private var api = SteamAPI()
-    var filteredItems: [SteamGame] {
-        items.filter { item in
-            libraryPageGlobals.filter.isEmpty ||
-            item.name.lowercased().contains(libraryPageGlobals.filter.lowercased())
-        }
-    }
     
     var body: some View {
         Group {

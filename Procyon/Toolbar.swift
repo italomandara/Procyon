@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Toolbar: View {
     @EnvironmentObject var router: Router
-    @Binding var filter: String
+    @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @Binding var showOptions: Bool
     
     var body: some View
@@ -31,7 +31,7 @@ struct Toolbar: View {
                 router.go(to: .profile)
             }.cornerRadius(20)
 
-            TextField("Search Game...", text: $filter)
+            TextField("Search Game...", text: $libraryPageGlobals.filter)
                 .textFieldStyle(.plain)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
