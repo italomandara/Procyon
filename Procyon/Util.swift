@@ -33,6 +33,32 @@ func persistFolderAccess(url: URL) throws {
     groupDefaults.set(bookmarks, forKey: "steamLibraryBookmarks")
 }
 
+func namespacedKey(_ namespace: String, _ key: String) -> String {
+    "\(namespace).\(key)"
+}
+
+func persistUsrDefData(key: String, data: Codable) {
+    let encoder = JSONEncoder()
+    guard let data = try? encoder.encode(data) else { return }
+    let groupDefaults = UserDefaults(suiteName: "group.com.italomandara.procyon")!
+    groupDefaults.set(data, forKey: key)
+}
+
+func readUsrDefData<T: Decodable>(key: String, type: T.Type = T.self) -> T? {
+    let groupDefaults = UserDefaults(suiteName: "group.com.italomandara.procyon")!
+    guard let data = groupDefaults.value(forKey: key) as? Data else {
+        console.error("couldn't get data for \(key)")
+        return nil
+    }
+    do {
+        return try JSONDecoder().decode(T.self, from: data)
+    } catch {
+        console.error("couldn't decode data for \(key)")
+        return nil
+    }
+}
+
+
 func persistUsrDefOptionString(key: String, value: String) {
     let groupDefaults = UserDefaults(suiteName: "group.com.italomandara.procyon")!
     groupDefaults.set(value, forKey: key)
@@ -344,15 +370,46 @@ enum OnOff: String {
     case on = "1"
 }
 
+struct GameOptionsData: Codable {
+    var cxGraphicsBackend: String
+    var wineMSync: Bool
+    var mtlHudEnabled: Bool
+    var gameArguments: String
+    
+    init(data: GameOptions) {
+        self.cxGraphicsBackend = data.cxGraphicsBackend
+        self.wineMSync = data.wineMSync
+        self.mtlHudEnabled = data.mtlHudEnabled
+        self.gameArguments = data.gameArguments
+    }
+}
+
 class GameOptions: ObservableObject {
-    @Published var cxGraphicsBackend: String = "d3dmetal"
-    @Published var wineMSync: Bool = true
-    @Published var mtlHudEnabled: Bool = true
+    @Published var cxGraphicsBackend: String
+    @Published var wineMSync: Bool
+    @Published var mtlHudEnabled: Bool
     @Published var dxvk: String?
     @Published var wineEsync: String?
     @Published var d3dMEnableMetalFX: String?
     @Published var d3dSupportDXR: String?
-    @Published var gameArguments: String = ""
+    @Published var gameArguments: String
+    
+    init(cxGraphicsBackend: String = "d3dmetal", wineMSync: Bool = true, mtlHudEnabled: Bool = true, dxvk: String? = nil, wineEsync: String? = nil, d3dMEnableMetalFX: String? = nil, d3dSupportDXR: String? = nil, gameArguments: String = "") {
+        self.cxGraphicsBackend = cxGraphicsBackend
+        self.wineMSync = wineMSync
+        self.mtlHudEnabled = mtlHudEnabled
+        self.dxvk = dxvk
+        self.wineEsync = wineEsync
+        self.d3dMEnableMetalFX = d3dMEnableMetalFX
+        self.d3dSupportDXR = d3dSupportDXR
+        self.gameArguments = gameArguments
+    }
+    func set(data: GameOptionsData) {
+        self.cxGraphicsBackend = data.cxGraphicsBackend
+        self.wineMSync = data.wineMSync
+        self.mtlHudEnabled = data.mtlHudEnabled
+        self.gameArguments = data.gameArguments
+    }
 }
 
 func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil) async throws {
@@ -373,7 +430,9 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
     console.warn("attempting to run steam.exe on game id \(id)")
     let mtlHudEnabled = options != nil && options!.mtlHudEnabled ? "1" : "0"
     let arguments = options != nil ? " " + options!.gameArguments : ""
-    try safeShell("MTL_HUD_ENABLED=\(mtlHudEnabled) \(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments)
+    let command = "MTL_HUD_ENABLED=\(mtlHudEnabled) \(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments
+    console.warn(command)
+    try safeShell(command)
 }
 
 func installGame(id: String) {

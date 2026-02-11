@@ -51,9 +51,17 @@ struct GameThumbnail: View {
                         Button {
                             libraryPageGlobals.selectedGame = item
                             libraryPageGlobals.setLoader(state: true)
+
+
+
                             Task {
                                 do {
-                                    try await launchWindowsGame( id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!)
+                                    let gameOptKey = namespacedKey("GameOptions", String(item.id))
+                                    if let gameOptionsData: GameOptionsData = readUsrDefData(key: gameOptKey) {
+                                        let gameOptions: GameOptions = GameOptions()
+                                        gameOptions.set(data: gameOptionsData)
+                                        try await launchWindowsGame( id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                    }
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                                         libraryPageGlobals.setLoader(state: false)
                                     }
