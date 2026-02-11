@@ -43,17 +43,17 @@ struct LibraryPage: View {
                     })
                         .progressViewStyle(.circular)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                        .background {
-//                            if (libraryPageGlobals.selectedGame?.headerImage != nil){
-//                                KFImage(URL(string: libraryPageGlobals.selectedGame!.headerImage))
-//                                    .placeholder {
-//                                        ProgressView()
-//                                    }
-//                                    .resizable()
-//                                    .scaledToFill()
-//                                    .blur(radius: 10)
-//                            }
-//                        }
+                        .background {
+                            if (libraryPageGlobals.selectedGame?.headerImage != nil){
+                                KFImage(URL(string: libraryPageGlobals.selectedGame!.headerImage))
+                                    .placeholder {
+                                        ProgressView()
+                                    }
+                                    .resizable()
+                                    .scaledToFill()
+                                    .blur(radius: 10)
+                            }
+                        }
                 } else if (isLoading) {
                     ZStack{
                         VStack(alignment: .center) {
@@ -144,6 +144,7 @@ struct LibraryPage: View {
             } else {
                 for folder in libraryPageGlobals.folders {
                     let games = try scanSteamFolder(dest: URL(string: folder)!)
+                    console.log("found \(games.count) games in the current folder")
                     libraryPageGlobals.appIDs.append(contentsOf: games)
                 }
             }
@@ -156,9 +157,9 @@ struct LibraryPage: View {
         }
         
         do {
-            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
-//            progress = 50
-//            items = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+//            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+            progress = 50
+            items = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
             progress = 100
         } catch {
             errorMessage = error.localizedDescription

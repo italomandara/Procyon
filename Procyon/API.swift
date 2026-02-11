@@ -33,8 +33,14 @@ enum APIError: Error {
 final class SteamAPI {
     var hasCache: Bool = false
     var progress: Double = 0
-    
+    private var cacheBlacklist: [String] = ["228980"]
     private var cache: [String: [SteamGame]] = [:]
+    private var cacheIDS: [String] {
+        if cache.count < 1 {
+            return []
+        }
+        return cache.map { String($0.key) }
+    }
     private var cacheURL: URL {
         let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         return dir.appendingPathComponent("SteamCache.plist")
@@ -74,6 +80,9 @@ final class SteamAPI {
         console.warn("Cache deleted")
     }
     func fetchGameInfo(appID: String) async throws -> [SteamGame]? {
+        if self.cacheBlacklist.contains(appID) {
+            return nil
+        }
         if let cached = cache[appID] {
 //            console.warn("Returning from cache for id \(appID)")
             return cached
@@ -129,22 +138,46 @@ final class SteamAPI {
         return items
     }
     func fetchGameInfoArray(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
+        console.log("requesting \(appIDs.count.description) games")
         console.warn("[\(appIDs.joined(separator: ","))]")
-        let urlString = "\(baseAPIMURL)?appids=\(appIDs.joined(separator: ","))"
         let headers: HTTPHeaders = ["x-api-key": apiKey]
+        var items: [SteamGame] = []
+        let uncached: [String] = appIDs.filter { id in
+            // Skip blacklisted IDs
+            guard cacheBlacklist.contains(id) == false else { return false }
+            // Only include IDs that are not present in the cache
+            return cache[id] == nil
+        }
+        let cached = cache.filter { appIDs.contains($0.key) }
 
+        console.warn("cache size: \(cache.count.description)")
+        console.warn("uncached size: \(uncached.count.description)")
+        
+        if(uncached.count < 1) {
+            console.warn("returning cached")
+            return cached.map { $0.value[0] }
+        }
+        
+        items.append(contentsOf: cached.map { $0.value[0] }) // start to populate with all cached games
+        console.log("populating with cached data items: \(cached.count)")
+        
+        let urlString = "\(baseAPIMURL)?appids=\(uncached.joined(separator: ","))" //just request uncached ids
+        console.log("requesting new items: [\(uncached.joined(separator: ","))]")
+        
         do {
             let data = try await AF.request(urlString, method: .get, headers: headers)
                 .validate(statusCode: 200..<300)
                 .serializingData()
                 .value
-           
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
-            
+            items.append(contentsOf: root.data) // append the remaining reqested from the api
+            root.data.forEach { cache[String($0.id)] = [$0] } //cache the new games that were fetched
+            console.log("caching new items: \(root.data.count)")
+            saveCache()
             setProgress(100)
-            return root.data
+            return items
         } catch {
-            console.error(error.localizedDescription)
+            console.error("fetchGameInfoArray failed: \(error.localizedDescription)")
         }
         return []
     }

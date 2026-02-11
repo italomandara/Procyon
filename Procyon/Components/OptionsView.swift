@@ -43,6 +43,10 @@ struct OptionsView: View {
                     .frame(height: 100)
                     Button(action: {
                         if let url = openFolderSelectorPanel() {
+                            if libraryPageGlobals.folders.contains(url.absoluteString) {
+                                console.log("\(url.absoluteString) folder exists!")
+                                return
+                            }
                             addSteamFolderPaths(url)
                             libraryPageGlobals.folders.append(url.absoluteString)
                             Task { await load() }
