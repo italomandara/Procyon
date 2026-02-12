@@ -446,6 +446,9 @@ func getInlineEnvs(from: GameOptions) -> String {
     func getDxmtConfigEnv(values: String) -> String {
         return "DXMT_CONFIG=\"\(values)\""
     }
+    func DoubleToFormattedStr(_ value: Double) -> String {
+        return String(value.formatted(.number.precision(.fractionLength(0...2))))
+    }
     value += defaults
     let mtlHudEnabled = "MTL_HUD_ENABLED=\(onOff(from.mtlHudEnabled)) "
     value += mtlHudEnabled
@@ -453,8 +456,9 @@ func getInlineEnvs(from: GameOptions) -> String {
     value += advertiseAVX
     let dxmtMetalFXSpatial = "DXMT_METALFX_SPATIAL_SWAPCHAIN=\(onOff(from.dxmtMetalFXSpatial)) "
     value += dxmtMetalFXSpatial
-    let dxmtPreferredMaxFrameRate = from.dxmtPreferredMaxFrameRate > 20 ? "d3d11.preferredMaxFrameRate=\(String(from.mtlHudEnabled));" : ""
-    let dxmtMetalSpatialUpscaleFactor = from.dxmtMetalFXSpatial == true ? "d3d11.metalSpatialUpscaleFactor=\(String(from.mtlHudEnabled));" : ""
+    
+    let dxmtPreferredMaxFrameRate = from.dxmtPreferredMaxFrameRate > 20 ? "d3d11.preferredMaxFrameRate=\(DoubleToFormattedStr(from.dxmtPreferredMaxFrameRate));" : ""
+    let dxmtMetalSpatialUpscaleFactor = from.dxmtMetalFXSpatial == true ? "d3d11.metalSpatialUpscaleFactor=\(DoubleToFormattedStr(from.dxmtMetalSpatialUpscaleFactor));" : ""
     value += getDxmtConfigEnv(values: dxmtPreferredMaxFrameRate + dxmtMetalSpatialUpscaleFactor)
     return value
 }
