@@ -18,9 +18,7 @@ struct GameDetailView: View {
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @StateObject var gameOptions = GameOptions()
     
-    var body: some View {
-        let gameOptKey = namespacedKey("GameOptions", String(game!.id))
-        
+    var body: some View {        
         if (game != nil) {
             VStack (alignment: .leading) {
                 ZStack(alignment: .bottom ) {
@@ -63,29 +61,6 @@ struct GameDetailView: View {
                         .padding(.bottom, game!.movies != nil ? 20 : 0)
                 }
                 VStack (alignment: .leading) {
-                    Text("Advanced options")
-                    HStack {
-                        Picker("Graphics Backend", selection: $gameOptions.cxGraphicsBackend) {
-                            Text("D3DMetal")
-                                .tag("d3dmetal")
-                            Text("DXMT")
-                                .tag("dxmt")
-                        }
-                        .pickerStyle(.menu)
-                        Toggle("MSync", isOn: $gameOptions.wineMSync)
-                        Toggle("Metal HUD", isOn: $gameOptions.mtlHudEnabled)
-                        TextField("Game arguments", text: $gameOptions.gameArguments)
-                    }.onChange(of: gameOptions.cxGraphicsBackend) {
-                        persistUsrDefData(key: gameOptKey, data: GameOptionsData(data: gameOptions))
-                    }.onChange(of: gameOptions.wineMSync) {
-                        persistUsrDefData(key: gameOptKey, data: GameOptionsData(data: gameOptions))
-                    }.onChange(of: gameOptions.mtlHudEnabled) {
-                        persistUsrDefData(key: gameOptKey, data: GameOptionsData(data: gameOptions))
-                    }.onChange(of: gameOptions.gameArguments) {
-                        persistUsrDefData(key: gameOptKey, data: GameOptionsData(data: gameOptions))
-                    }
-                    .padding(.bottom)
-                    
                     if (game!.genres != nil && game!.genres!.count > 0){
                         Text("Genre:")
                         HFlow(alignment: .center) {
@@ -151,13 +126,6 @@ struct GameDetailView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, game!.movies == nil ? 20: -15)
                 .padding(.bottom, 20)
-            }
-            .onAppear() {
-                if(self.game != nil) {
-                    if let data: GameOptionsData = readUsrDefData(key: gameOptKey) {
-                        self.gameOptions.set(data: data)
-                    }
-                }
             }
             .frame(width: windowWidth - 100)
             .environmentObject(gameOptions)

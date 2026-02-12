@@ -13,6 +13,7 @@ struct GameHeader: View {
     @EnvironmentObject var appGlobals: AppGlobals
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @EnvironmentObject var gameOptions: GameOptions
+    @State private var showGameOptions: Bool = false
     
     var developers: String {
         "Developer: \(game?.developers.joined(separator: ", ") ?? ("Unknown Developer"))"
@@ -44,7 +45,11 @@ struct GameHeader: View {
                     showDetailView = false
                 }
             })
-            .padding(.horizontal, 24)
+            .padding(.leading, 24)
+            BigButton(text: "...", action: {
+                showGameOptions = true
+            })
+            .padding(.leading, 5)
             Spacer()
             HStack(alignment: .center){
                 Text("Available for:")
@@ -75,6 +80,12 @@ struct GameHeader: View {
                     .stroke(.white, lineWidth: 2)
             )
             .clipShape(.capsule)
-        }.foregroundStyle(.white)
+        }
+        .foregroundStyle(.white)
+        .sheet(isPresented: $showGameOptions) {
+            Modal(showModal: $showGameOptions) {
+                GameOptionsView(game: $game)
+            }
+        }
     }
 }

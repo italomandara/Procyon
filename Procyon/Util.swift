@@ -375,12 +375,22 @@ struct GameOptionsData: Codable {
     var wineMSync: Bool
     var mtlHudEnabled: Bool
     var gameArguments: String
+    var dxmtPreferredMaxFrameRate: Double
+    var dxmtMetalFXSpatial: Bool
+    var dxmtMetalSpatialUpscaleFactor: Double
+    var advertiseAVX: Bool
+    var envVariables: String
     
     init(data: GameOptions) {
         self.cxGraphicsBackend = data.cxGraphicsBackend
         self.wineMSync = data.wineMSync
         self.mtlHudEnabled = data.mtlHudEnabled
         self.gameArguments = data.gameArguments
+        self.dxmtPreferredMaxFrameRate = data.dxmtPreferredMaxFrameRate
+        self.dxmtMetalFXSpatial = data.dxmtMetalFXSpatial
+        self.dxmtMetalSpatialUpscaleFactor = data.dxmtMetalSpatialUpscaleFactor
+        self.advertiseAVX = data.advertiseAVX
+        self.envVariables = data.envVariables
     }
 }
 
@@ -393,8 +403,13 @@ class GameOptions: ObservableObject {
     @Published var d3dMEnableMetalFX: String?
     @Published var d3dSupportDXR: String?
     @Published var gameArguments: String
+    @Published var dxmtPreferredMaxFrameRate: Double
+    @Published var dxmtMetalFXSpatial: Bool
+    @Published var dxmtMetalSpatialUpscaleFactor: Double
+    @Published var advertiseAVX: Bool
+    @Published var envVariables: String
     
-    init(cxGraphicsBackend: String = "d3dmetal", wineMSync: Bool = true, mtlHudEnabled: Bool = true, dxvk: String? = nil, wineEsync: String? = nil, d3dMEnableMetalFX: String? = nil, d3dSupportDXR: String? = nil, gameArguments: String = "") {
+    init(cxGraphicsBackend: String = "d3dmetal", wineMSync: Bool = true, mtlHudEnabled: Bool = true, dxvk: String? = nil, wineEsync: String? = nil, d3dMEnableMetalFX: String? = nil, d3dSupportDXR: String? = nil, gameArguments: String = "", dxmtPreferredMaxFrameRate: Double = 0, dxmtMetalFXSpatial: Bool = false, dxmtMetalSpatialUpscaleFactor: Double = 1.0, advertiseAVX: Bool = true, envVariables: String = "") {
         self.cxGraphicsBackend = cxGraphicsBackend
         self.wineMSync = wineMSync
         self.mtlHudEnabled = mtlHudEnabled
@@ -403,13 +418,45 @@ class GameOptions: ObservableObject {
         self.d3dMEnableMetalFX = d3dMEnableMetalFX
         self.d3dSupportDXR = d3dSupportDXR
         self.gameArguments = gameArguments
+        self.dxmtMetalFXSpatial = dxmtMetalFXSpatial
+        self.dxmtMetalSpatialUpscaleFactor = dxmtMetalSpatialUpscaleFactor
+        self.dxmtPreferredMaxFrameRate = dxmtPreferredMaxFrameRate
+        self.advertiseAVX = advertiseAVX
+        self.envVariables = envVariables
     }
     func set(data: GameOptionsData) {
         self.cxGraphicsBackend = data.cxGraphicsBackend
         self.wineMSync = data.wineMSync
         self.mtlHudEnabled = data.mtlHudEnabled
         self.gameArguments = data.gameArguments
+        self.dxmtMetalFXSpatial = data.dxmtMetalFXSpatial
+        self.dxmtMetalSpatialUpscaleFactor = data.dxmtMetalSpatialUpscaleFactor
+        self.dxmtPreferredMaxFrameRate = data.dxmtPreferredMaxFrameRate
+        self.advertiseAVX = data.advertiseAVX
+        self.envVariables = data.envVariables
     }
+}
+
+func getInlineEnvs(from: GameOptions) -> String {
+    func onOff(_ value: Bool?) -> String {
+        return value != nil && value == true ? "1" : "0"
+    }
+    var value = "\(from.envVariables) "
+    let defaults = "WINEDEBUG=-all "
+    func getDxmtConfigEnv(values: String) -> String {
+        return "DXMT_CONFIG=\"\(values)\""
+    }
+    value += defaults
+    let mtlHudEnabled = "MTL_HUD_ENABLED=\(onOff(from.mtlHudEnabled)) "
+    value += mtlHudEnabled
+    let advertiseAVX = "ROSETTA_ADVERTISE_AVX=\(onOff(from.advertiseAVX)) "
+    value += advertiseAVX
+    let dxmtMetalFXSpatial = "DXMT_METALFX_SPATIAL_SWAPCHAIN=\(onOff(from.dxmtMetalFXSpatial)) "
+    value += dxmtMetalFXSpatial
+    let dxmtPreferredMaxFrameRate = from.dxmtPreferredMaxFrameRate > 20 ? "d3d11.preferredMaxFrameRate=\(String(from.mtlHudEnabled));" : ""
+    let dxmtMetalSpatialUpscaleFactor = from.dxmtMetalFXSpatial == true ? "d3d11.metalSpatialUpscaleFactor=\(String(from.mtlHudEnabled));" : ""
+    value += getDxmtConfigEnv(values: dxmtPreferredMaxFrameRate + dxmtMetalSpatialUpscaleFactor)
+    return value
 }
 
 func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil) async throws {
@@ -428,9 +475,8 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
 //    try await quitSteam(cxAppPath: cxAppPath, bottleName: bottleName)
 
     console.warn("attempting to run steam.exe on game id \(id)")
-    let mtlHudEnabled = options != nil && options!.mtlHudEnabled ? "1" : "0"
     let arguments = options != nil ? " " + options!.gameArguments : ""
-    let command = "MTL_HUD_ENABLED=\(mtlHudEnabled) \(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments
+    let command = "\(getInlineEnvs(from: options!)) \(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\" -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments
     console.warn(command)
     try safeShell(command)
 }
@@ -445,42 +491,53 @@ let logger = Logger(subsystem: "CXPatcher", category: "util")
 
 class Console {
     var logMessages: [String] = []
+    var enableLogFile: Bool = false
     let f = FileManager.default
     
     func log(_ msg: String) {
         console.warn(msg)
-//        logMessages.append(msg)
+        if enableLogFile == true {
+            logMessages.append(msg)
+        }
     }
     func warn(_ msg: String) {
         print(msg)
-//        logMessages.append(msg)
         logger.notice("\(msg)")
+        if enableLogFile == true {
+            logMessages.append(msg)
+        }
     }
     func error(_ msg: String) {
         let errorMsg: String = "ERROR: \(msg)"
         logger.error("\(errorMsg)")
         console.warn(errorMsg)
-//        logMessages.append(errorMsg)
+        if enableLogFile == true {
+            logMessages.append(msg)
+        }
     }
     func clear() {
         self.logMessages.removeAll()
     }
-//    func saveLogs(to: URL) {
-//        if f.fileExists(atPath: to.path()) {
-//            do {
-//                try f.removeItem(at: to)
-//            } catch {
-//                console.error(error.localizedDescription)
-//            }
-//        }
-//        let content = logMessages.joined(separator: "\n")
-//        console.warn("Saving logs to \(to)")
-//        do {
-//            try content.write(to: to, atomically: true, encoding: .utf8)
-//        } catch {
-//            console.error(error.localizedDescription)
-//        }
-//    }
+    func saveLogs(to: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Procyon.log.txt")) {
+        if f.fileExists(atPath: to.path()) {
+            do {
+                try f.removeItem(at: to)
+            } catch {
+                console.error(error.localizedDescription)
+            }
+        }
+        let content = logMessages.joined(separator: "\n")
+        console.warn("Saving logs to \(to)")
+        do {
+            try content.write(to: to, atomically: true, encoding: .utf8)
+        } catch {
+            console.error(error.localizedDescription)
+        }
+    }
 }
 
 let console = Console()
+
+func localizedString(forKey: String, value: String? = nil) -> String {
+    return "\(forKey) \(value ?? "")"
+}
