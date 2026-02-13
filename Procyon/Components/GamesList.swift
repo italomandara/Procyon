@@ -14,21 +14,12 @@ let columns = [
 ]
 
 struct GamesList: View {
-    let items: [SteamGame]
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
-    var processedItems: [SteamGame] {
-        items.filter { item in
-            libraryPageGlobals.filter.isEmpty ||
-            item.name.lowercased().contains(libraryPageGlobals.filter.lowercased())
-        }.sorted { lhs, rhs in
-            lhs.name.lowercased() < rhs.name.lowercased()
-        }
-    }
     
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(processedItems) { item in
+                ForEach(libraryPageGlobals.filteredGames) { item in
                     GameThumbnail(item: item)
                 }
             }
@@ -36,7 +27,6 @@ struct GamesList: View {
         }.safeAreaInset(edge: .bottom, spacing: nil) {
             Toolbar(showOptions: $libraryPageGlobals.showOptions).padding()
         }
-//        Text("Viewing \(processedItems.count) of \(items.count) results").foregroundStyle(.white)
     }
 }
 

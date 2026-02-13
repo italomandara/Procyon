@@ -9,6 +9,11 @@ import SwiftUI
 import Combine
 import Kingfisher
 
+enum SortingOptions {
+    case name
+    case releaseDate
+}
+
 class LibraryPageGlobals: ObservableObject {
     @Published var appIDs: [String] = []
     @Published var folders: [String] = []
@@ -17,6 +22,22 @@ class LibraryPageGlobals: ObservableObject {
     @Published var showDetailView = false
     @Published var selectedGame: SteamGame? = nil
     @Published var isLaunchingGame: Bool = false
+    @Published var games: [SteamGame] = []
+    @Published var sortBy: SortingOptions = SortingOptions.name
+    
+    var filteredGames: [SteamGame] {
+        self.games.filter { item in
+            self.filter.isEmpty ||
+            item.name.lowercased().contains(self.filter.lowercased())
+        }.sorted { lhs, rhs in
+            switch self.sortBy {
+            case SortingOptions.name:
+                return lhs.name.lowercased() < rhs.name.lowercased()
+            case SortingOptions.releaseDate:
+                return lhs.releaseDate.date < rhs.releaseDate.date
+            }
+        }
+    }
     
     func setLoader(state: Bool) {
         isLaunchingGame = state
@@ -25,7 +46,7 @@ class LibraryPageGlobals: ObservableObject {
 
 struct LibraryPage: View {
     @StateObject var libraryPageGlobals = LibraryPageGlobals()
-    @State private var items: [SteamGame] = []
+//    @State private var items: [SteamGame] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var progress: Double = 0
@@ -96,7 +117,7 @@ struct LibraryPage: View {
                         }
                         .frame(maxWidth: .infinity)
                     } else {
-                        GamesList(items: items)
+                        GamesList()
                     }
                 }
             }
@@ -157,14 +178,14 @@ struct LibraryPage: View {
         }
         
         do {
-            items = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+            libraryPageGlobals.games = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
 //            Task {
 //                while progress <= 100 {
 //                    try await Task.sleep(nanoseconds: 100_000_000)
 //                    progress += 1
 //                }
 //            }
-//            items = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+//            libraryPageGlobals.games = try await api.fetchGameInfoArray(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
             progress = 100
         } catch {
             errorMessage = error.localizedDescription
