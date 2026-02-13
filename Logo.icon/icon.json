@@ -1,6 +1,9 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.92092,0.00000,0.00000,1.00000",
+    "linear-gradient" : [
+      "display-p3:0.08194,0.15934,0.96783,1.00000",
+      "display-p3:0.00000,0.16469,0.28910,1.00000"
+    ],
     "orientation" : {
       "start" : {
         "x" : 0.5,
@@ -16,13 +19,17 @@
     {
       "layers" : [
         {
-          "blend-mode" : "normal",
-          "fill" : "none",
           "glass" : true,
           "hidden" : false,
-          "image-name" : "Image.png",
-          "name" : "Image",
-          "opacity" : 1
+          "image-name" : "Chibi Procyon.png",
+          "name" : "Chibi Procyon",
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
         }
       ],
       "shadow" : {

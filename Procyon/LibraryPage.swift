@@ -62,19 +62,19 @@ struct LibraryPage: View {
                     ProgressView(label: {
                         Text("Launching \(libraryPageGlobals.selectedGame?.name ?? "'Unknown'")...")
                     })
-                        .progressViewStyle(.circular)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background {
-                            if (libraryPageGlobals.selectedGame?.headerImage != nil){
-                                KFImage(URL(string: libraryPageGlobals.selectedGame!.headerImage))
-                                    .placeholder {
-                                        ProgressView()
-                                    }
-                                    .resizable()
-                                    .scaledToFill()
-                                    .blur(radius: 10)
-                            }
+                    .progressViewStyle(.circular)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background {
+                        if (libraryPageGlobals.selectedGame?.headerImage != nil){
+                            KFImage(URL(string: libraryPageGlobals.selectedGame!.headerImage))
+                                .placeholder {
+                                    ProgressView()
+                                }
+                                .resizable()
+                                .scaledToFill()
+                                .blur(radius: 10)
                         }
+                    }
                 } else if (isLoading) {
                     ZStack{
                         VStack(alignment: .center) {
@@ -94,31 +94,29 @@ struct LibraryPage: View {
                     Text("Error: \(errorMessage)")
                         .lineLimit(1)
                         .foregroundStyle(.red)
-                } else {
-                    if (libraryPageGlobals.appIDs.isEmpty) {
-                        VStack {
-                            ContentUnavailableView {
-                                Label("No Libraries found", systemImage: "gamecontroller")
-                                    .padding(.bottom)
-                                Button {
-                                    libraryPageGlobals.showOptions = true
-                                } label: {
-                                    Label("Add Library", systemImage: "plus")
-                                }
-                            } description: {
-                                Text("No Steam libraries found.\nPlease add a Steam library folder.")
-                                Button {
-                                    libraryPageGlobals.showOptions = true
-                                } label: {
-                                    Label("Add Library", systemImage: "plus")
-                                }
+                } else if (libraryPageGlobals.appIDs.isEmpty) {
+                    VStack {
+                        ContentUnavailableView {
+                            Label("No Libraries found", systemImage: "gamecontroller")
+                                .padding(.bottom)
+                            Button {
+                                libraryPageGlobals.showOptions = true
+                            } label: {
+                                Label("Add Library", systemImage: "plus")
                             }
-                            .foregroundStyle(.white)
+                        } description: {
+                            Text("No Steam libraries found.\nPlease add a Steam library folder.")
+                            Button {
+                                libraryPageGlobals.showOptions = true
+                            } label: {
+                                Label("Add Library", systemImage: "plus")
+                            }
                         }
-                        .frame(maxWidth: .infinity)
-                    } else {
-                        GamesList()
+                        .foregroundStyle(.white)
                     }
+                    .frame(maxWidth: .infinity)
+                } else {
+                    GamesList()
                 }
             }
             .sheet(isPresented: $libraryPageGlobals.showOptions) {

@@ -1,19 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "procyon 1x.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "filename" : "procyon 2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "filename" : "Untitled.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename" : "Chibi Procyon.pdf",
+      "idiom" : "universal"
     }
   ],
   "info" : {

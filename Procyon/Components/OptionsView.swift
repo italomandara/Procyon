@@ -96,6 +96,7 @@ struct OptionsView: View {
             .frame(width: 300, height: 300)
             .padding()
         }
+//        .background(.accent.mix(with: .black, by: 0.5).opacity(0.9))
     }
 }
 

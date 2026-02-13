@@ -35,7 +35,7 @@ struct Toolbar: View {
                 .textFieldStyle(.plain)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .frame(width: 100)
+                .frame(width: 150)
                 .background(.white.opacity(0.2))
                 .foregroundStyle(.white)
                 .cornerRadius(20)
@@ -56,7 +56,7 @@ struct Toolbar: View {
             Text("Showing \(libraryPageGlobals.filteredGames.count)/\(libraryPageGlobals.games.count)").font(Font.footnote)
         }
         .padding(6)
-        .background(.black.opacity(0.9))
+        .background(.accent.mix(with: .black, by: 0.6).opacity(0.9))
         .foregroundStyle(.white)
         .cornerRadius(20)
     }

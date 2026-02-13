@@ -60,18 +60,12 @@ struct ContentView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.60, green: 0.0, blue: 0.0),
-                        Color(red: 0.35, green: 0.0, blue: 0.0)
+                        .accentColor.mix(with: .black, by: 0.2),
+                        .accentColor.mix(with: .black, by: 0.4)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 ).ignoresSafeArea()
-                Image(.procyon)
-                    .resizable()
-                    .scaledToFill()
-                    .opacity(0.1)
-                    .blendMode(.multiply)
-                    .blur(radius: 20)
             }
         )
     }
