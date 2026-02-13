@@ -20,8 +20,7 @@ struct OptionsView: View {
             showModal: $libraryPageGlobals.showOptions,
         ) {
             VStack (alignment: .center){
-                Text("Options")
-                Spacer()
+                Text("Options").padding(.vertical, 10)
                 VStack(alignment: .leading) {
                     Text("Game libraries").padding(.horizontal, 10)
                     List {
@@ -80,23 +79,27 @@ struct OptionsView: View {
                         persistUsrDefOptionString(key: "selectedBottle", value: newValue!)
                     }
                 }
-                Spacer()
                 HStack {
                     Button(action: { deleteCache() }) {
                         Label("Delete cache", systemImage: "trash")
                     }
                     .cornerRadius(20)
                     Spacer()
-                    Button(action: { Task { await load() } }) {
+                    Button(action: {
+                        Task {
+                            await load()
+                        }
+                        libraryPageGlobals.showOptions = false
+                    }) {
                         Label("Reload Libraries", systemImage: "arrow.clockwise")
                     }
                     .cornerRadius(20)
                 }
             }
-            .frame(width: 300, height: 300)
+            .frame(width: 300, height: 320)
             .padding()
         }
-//        .background(.accent.mix(with: .black, by: 0.5).opacity(0.9))
+        .background(.accent.mix(with: .black, by: 0.6))
     }
 }
 

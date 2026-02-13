@@ -53,6 +53,7 @@ struct ContentView: View {
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .preferredColorScheme(.dark)
         .environmentObject(router)
         .environmentObject(appGlobals)
         .animation(.default, value: router.route)
