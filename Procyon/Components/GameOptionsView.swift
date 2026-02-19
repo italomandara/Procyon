@@ -99,6 +99,7 @@ struct GameOptionsView: View {
             .toggleStyle(.switch)
             //        .controlSize(/*@START_MENU_TOKEN@*/.mini/*@END_MENU_TOKEN@*/)
         }
+//        .background(.accent.mix(with: .black, by: 0.6).opacity(0.9))
         .padding()
         .onAppear() {
             if let data: GameOptionsData = readUsrDefData(key: gameOptKey) {

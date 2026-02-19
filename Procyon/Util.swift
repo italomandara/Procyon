@@ -11,6 +11,8 @@ import UniformTypeIdentifiers
 import Combine
 import os
 
+let blacklist: [String] = ["228980"]
+
 func openFolderSelectorPanel(type: UTType = .folder) -> URL? {
     let panel = NSOpenPanel()
     panel.title = "Select a Steam library folder (steamapps)";
@@ -115,7 +117,7 @@ func withSecurityScope<T>(for url: URL, _ body: () throws -> T) rethrows -> T? {
 
 func addSteamFolderPaths(_ url: URL) {
     do {
-        if (try scanSteamFolder(dest: url).isEmpty) {
+        if (try getIDsFromFolder(dest: url).isEmpty) {
             console.warn("Folder is empty")
             return
         }
@@ -163,25 +165,78 @@ func extractFolderNameRegex(_ path: String) -> String {
 
 let id = extractAppIDRegex(from: "appmanifest_8870.acf") // "8870"
 
-func scanSteamFolder(dest: URL) throws -> [String] {
+func getIDsFromFolder(dest: URL) throws -> [String] {
     /**
      scans a folder and returns an array of steam games ids
      */
     try withSecurityScope(for: dest) {
         let f = FileManager.default
-        let urls = try f.contentsOfDirectory(at: dest, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+        let urls = try f.contentsOfDirectory(at: dest, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants, .skipsPackageDescendants])
         return urls
             .filter { $0.pathExtension == "acf" }
             .map {
                 extractAppIDRegex(from: $0.lastPathComponent)!
             }
+            .filter { !blacklist.contains($0) }
     } ?? []
 }
 
-@MainActor
-func updateSteamGamesList (games: [String], appIDS: inout [String]) -> Void {
-    appIDS.append(contentsOf: games)
+func getGamesMeta(from: URL) throws -> [SteamACFMeta] {
+    /**
+     scans a folder and returns an array of steam games meta
+     */
+    var array: [SteamACFMeta] = []
+    try withSecurityScope(for: from) {
+        let f = FileManager.default
+        let urls = try f.contentsOfDirectory(at: from, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants, .skipsPackageDescendants]).filter { $0.pathExtension == "acf" }
+        try urls.forEach { url in
+            let file  = try readFile(at: url)
+            let parsed = parseACFToDict(from: file)
+            let meta = mapDictToSteamACFMeta(from: parsed)
+            array.append(meta)
+        }
+    }
+    return array
 }
+
+func readFile(at: URL) throws -> String {
+    return try String(contentsOf: at, encoding: String.Encoding.utf8)
+}
+
+func parseACFToDict(from: String) -> [String:String] {
+    /**
+     Incomplete shallow parser that the skips main property
+     parses an ACF file content String into a dictionary
+     */
+    var dictionary: [String:String] = [:]
+    let search1: Regex = /(("\w+")\n\{\n(.*\n)+\})+/
+    let search2: Regex = /(\t"(\w+?)"\t+"(.*?)")\n(?=\t"\w+")/
+    
+    let matches = from.matches(of: search1)
+    for match in matches {
+        let values = match.0.matches(of: search2)
+        for value in values {
+            dictionary[value.2.description] = value.3.description
+        }
+    }
+    return dictionary
+}
+
+func mapDictToSteamACFMeta(from: [String:String]) -> SteamACFMeta {
+    /**
+     Incomplete it only maps appid and installdir
+     */
+    return SteamACFMeta(appid: from["appid"] ?? "unknown", installdir: from["installdir"] ?? "unknown")
+}
+
+func mapGamesACFMeta (from: URL) -> [SteamACFMeta] {
+    return []
+}
+
+//@MainActor
+//func updateSteamGamesList (games: [String], appIDS: inout [String]) -> Void {
+//    appIDS.append(contentsOf: games)
+//}
 
 final class MountObserver {
     private var cancellables = Set<AnyCancellable>()
@@ -446,8 +501,8 @@ func getInlineEnvs(from: GameOptions) -> String {
     func getDxmtConfigEnv(values: String) -> String {
         return "DXMT_CONFIG=\"\(values)\""
     }
-    func DoubleToFormattedStr(_ value: Double) -> String {
-        return String(value.formatted(.number.precision(.fractionLength(0...2))))
+    func DoubleToFormattedStr(_ value: Double, _ digits: Int = 2) -> String {
+        return String(value.formatted(.number.precision(.fractionLength(0...digits))))
     }
     value += defaults
     let mtlHudEnabled = "MTL_HUD_ENABLED=\(onOff(from.mtlHudEnabled)) "
@@ -458,8 +513,8 @@ func getInlineEnvs(from: GameOptions) -> String {
     value += dxmtMetalFXSpatial
     
     let dxmtPreferredMaxFrameRate = from.dxmtPreferredMaxFrameRate > 20 ? "d3d11.preferredMaxFrameRate=\(DoubleToFormattedStr(from.dxmtPreferredMaxFrameRate));" : ""
-    let dxmtMetalSpatialUpscaleFactor = from.dxmtMetalFXSpatial == true ? "d3d11.metalSpatialUpscaleFactor=\(DoubleToFormattedStr(from.dxmtMetalSpatialUpscaleFactor));" : ""
-    value += getDxmtConfigEnv(values: dxmtPreferredMaxFrameRate + dxmtMetalSpatialUpscaleFactor)
+    let dxmtMetalSpatialUpscaleFactor = from.dxmtMetalFXSpatial == true ? "d3d11.metalSpatialUpscaleFactor=\(from.dxmtMetalSpatialUpscaleFactor);" : ""
+    value += getDxmtConfigEnv(values:  dxmtMetalSpatialUpscaleFactor + dxmtPreferredMaxFrameRate)
     return value
 }
 
@@ -499,7 +554,7 @@ class Console {
     let f = FileManager.default
     
     func log(_ msg: String) {
-        console.warn(msg)
+        print(msg)
         if enableLogFile == true {
             logMessages.append(msg)
         }
@@ -544,4 +599,15 @@ let console = Console()
 
 func localizedString(forKey: String, value: String? = nil) -> String {
     return "\(forKey) \(value ?? "")"
+}
+
+//func getGameFolder(forGameId: Int, fromFolders: [String]) -> URL {
+//    let f = FileManager.default
+//    fromFolders.forEach { (path) in
+//        
+//    }
+//}
+
+func showFolder(forGameId: Int, fromFolders: [String]) {
+//    let url = getGameFolder(forGameId: forGameId, fromFolders: fromFolders)
 }

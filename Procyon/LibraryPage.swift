@@ -15,7 +15,7 @@ enum SortingOptions {
 }
 
 class LibraryPageGlobals: ObservableObject {
-    @Published var appIDs: [String] = []
+    @Published var gamesMeta: [SteamACFMeta] = []
     @Published var folders: [String] = []
     @Published var showOptions: Bool = false
     @Published var filter: String = ""
@@ -52,7 +52,7 @@ struct LibraryPage: View {
     @State private var progress: Double = 0
     @State private var selectedGame: SteamGame? = nil
     @State private var mntObserver: MountObserver?
-    
+
     private var api = SteamAPI()
     
     var body: some View {
@@ -64,6 +64,7 @@ struct LibraryPage: View {
                     })
                     .progressViewStyle(.circular)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
                     .background {
                         if (libraryPageGlobals.selectedGame?.headerImage != nil){
                             KFImage(URL(string: libraryPageGlobals.selectedGame!.headerImage))
@@ -73,6 +74,7 @@ struct LibraryPage: View {
                                 .resizable()
                                 .scaledToFill()
                                 .blur(radius: 10)
+                                .blendMode(.multiply)
                         }
                     }
                 } else if (isLoading) {
@@ -80,7 +82,7 @@ struct LibraryPage: View {
                         VStack(alignment: .center) {
                             Image(.procyon).resizable()
                                 .scaledToFit()
-                                .frame(width: 100)
+                                .frame(width: 80)
                             Text("Building your library…")
                                 .foregroundStyle(.white)
                                 .padding(.top)
@@ -94,7 +96,7 @@ struct LibraryPage: View {
                     Text("Error: \(errorMessage)")
                         .lineLimit(1)
                         .foregroundStyle(.red)
-                } else if (libraryPageGlobals.appIDs.isEmpty) {
+                } else if (libraryPageGlobals.gamesMeta.isEmpty) {
                     VStack {
                         ContentUnavailableView {
                             Label("No Libraries found", systemImage: "gamecontroller")
@@ -155,28 +157,30 @@ struct LibraryPage: View {
     private func load() async {
         isLoading = true
         progress = 0
-        libraryPageGlobals.appIDs.removeAll()
+        libraryPageGlobals.gamesMeta.removeAll()
         do {
             libraryPageGlobals.folders = getSteamFolderPaths()
             if libraryPageGlobals.folders.isEmpty {
                 console.warn("There are no folders to scan.")
             } else {
                 for folder in libraryPageGlobals.folders {
-                    let games = try scanSteamFolder(dest: URL(string: folder)!)
-                    console.log("found \(games.count) games in the current folder")
-                    libraryPageGlobals.appIDs.append(contentsOf: games)
+                    let folderUrl = URL(string: folder)!
+                    do {
+                        let foldergamesMeta = try getGamesMeta(from: folderUrl)
+                        console.log("found \(foldergamesMeta.count) games in the current folder")
+                        libraryPageGlobals.gamesMeta.append(contentsOf: foldergamesMeta)
+                    } catch {
+                        console.error(error.localizedDescription)
+                    }
                 }
             }
-        } catch {
-            console.error(error.localizedDescription)
         }
-
         defer {
             isLoading = false
         }
         
         do {
-            libraryPageGlobals.games = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.appIDs, setProgress: { self.progress = $0 })
+            libraryPageGlobals.games = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.gamesMeta.map(\.appid), setProgress: { self.progress = $0 })
 //            Task {
 //                while progress <= 100 {
 //                    try await Task.sleep(nanoseconds: 100_000_000)

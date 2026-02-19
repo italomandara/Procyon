@@ -329,3 +329,36 @@ extension SteamGame {
         )
     )
 }
+
+struct InstalledDepot {
+    var manifest: String
+    var size: String
+}
+
+struct SteamACFMeta {
+    var appid: String
+    var universe: String?
+    var LauncherPath: String?
+    var name: String?
+    var StateFlags: String?
+    var installdir: String
+    var LastUpdated: String?
+    var LastPlayed: String?
+    var SizeOnDisk: String?
+    var StagingSize: String?
+    var buildid: String?
+    var LastOwner: String?
+    var DownloadType: String?
+    var UpdateResult: String?
+    var BytesToDownload: String?
+    var BytesDownloaded: String?
+    var BytesToStage: String?
+    var BytesStaged: String?
+    var TargetBuildID: String?
+    var AutoUpdateBehavior: String?
+    var AllowOtherDownloadsWhileRunning: String?
+    var ScheduledAutoUpdate: String?
+    var InstalledDepots: [String: InstalledDepot]?
+    var UserConfig: [String: String]?
+    var MountedConfig: [String: String]?
+}

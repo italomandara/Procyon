@@ -33,7 +33,7 @@ enum APIError: Error {
 final class SteamAPI {
     var hasCache: Bool = false
     var progress: Double = 0
-    private var cacheBlacklist: [String] = ["228980"]
+    private var cacheBlacklist: [String] = blacklist
     private var cache: [String: [SteamGame]] = [:]
     private var cacheIDS: [String] {
         if cache.count < 1 {

@@ -127,6 +127,7 @@ struct GameDetailView: View {
                 .padding(.top, game!.movies == nil ? 20: -15)
                 .padding(.bottom, 20)
             }
+            .background(.accent.mix(with: .black, by: 0.6).opacity(0.9))
             .frame(width: windowWidth - 100)
             .environmentObject(gameOptions)
         }

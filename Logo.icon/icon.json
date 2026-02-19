@@ -19,17 +19,9 @@
     {
       "layers" : [
         {
-          "glass" : true,
-          "hidden" : false,
-          "image-name" : "Chibi Procyon.png",
-          "name" : "Chibi Procyon",
-          "position" : {
-            "scale" : 0.8,
-            "translation-in-points" : [
-              0,
-              0
-            ]
-          }
+          "glass" : false,
+          "image-name" : "Image.png",
+          "name" : "Image"
         }
       ],
       "shadow" : {

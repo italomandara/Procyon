@@ -46,8 +46,12 @@ struct GameHeader: View {
                 }
             })
             .padding(.leading, 24)
-            BigButton(text: "...", action: {
+            BigButton(text: "⚙️", action: {
                 showGameOptions = true
+            })
+            .padding(.leading, 5)
+            BigButton(text: "📁", action: {
+                showFolder(forGameId: game!.id, fromFolders: libraryPageGlobals.folders)
             })
             .padding(.leading, 5)
             Spacer()
