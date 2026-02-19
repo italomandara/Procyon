@@ -26,16 +26,16 @@ struct GameThumbnail: View {
                         }
                         .resizable()
                         .scaledToFit()
-                    if(item.controllerSupport == "full") {
-                        Image(systemName: "gamecontroller.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)              // icon size
-                        .padding(4)                                // space inside the circle
-                        .background(Color.black.opacity(0.9))     // semi-transparent black
-                        .clipShape(Circle())                       // make it circular
-                        .foregroundStyle(.white)                   // icon color
-                        .padding(8)
+                    if (libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.id) })!.isNative) {
+                        Image("os-apple")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)              // icon size
+                            .padding(8)                                // space inside the circle
+                            .background(Color.black.opacity(0.5))     // semi-transparent black
+                            .clipShape(Circle())                       // make it circular
+                            .foregroundStyle(.white)                   // icon color
+                            .padding(8)
                     }
                 }
                 VStack (alignment: .leading, spacing: 6) {
@@ -57,10 +57,16 @@ struct GameThumbnail: View {
                             Task {
                                 do {
                                     let gameOptKey = namespacedKey("GameOptions", String(item.id))
+                                    let gameOptions: GameOptions = GameOptions()
                                     if let gameOptionsData: GameOptionsData = readUsrDefData(key: gameOptKey) {
                                         let gameOptions: GameOptions = GameOptions()
                                         gameOptions.set(data: gameOptionsData)
-                                        try await launchWindowsGame( id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                    }
+                                    let isNative = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.id) })?.isNative ?? false
+                                    if(isNative) {
+                                        try await launchNativeGame(id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                    } else {
+                                        try await launchWindowsGame(id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                                     }
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                                         libraryPageGlobals.setLoader(state: false)

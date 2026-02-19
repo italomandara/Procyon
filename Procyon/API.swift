@@ -139,7 +139,6 @@ final class SteamAPI {
     }
     func fetchGameInfoArray(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
         console.log("requesting \(appIDs.count.description) games")
-        console.warn("[\(appIDs.joined(separator: ","))]")
         let headers: HTTPHeaders = ["x-api-key": apiKey]
         var items: [SteamGame] = []
         let uncached: [String] = appIDs.filter { id in

@@ -181,6 +181,31 @@ func getIDsFromFolder(dest: URL) throws -> [String] {
     } ?? []
 }
 
+func folderContainsFile(withExtension ext: String, at url: URL) -> Bool {
+    let f = FileManager.default
+    let keys: [URLResourceKey] = [.isRegularFileKey, .isDirectoryKey]
+    let options: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles]
+
+    guard let enumerator = f.enumerator(at: url, includingPropertiesForKeys: keys, options: options) else {
+        return false
+    }
+
+    for case let fileURL as URL in enumerator {
+        // Quick check via path extension
+        if fileURL.pathExtension.caseInsensitiveCompare(ext) == .orderedSame {
+            return true
+        }
+    }
+    return false
+}
+
+func getIsNative(fromURL: URL) -> Bool {
+    if folderContainsFile(withExtension: "exe", at: fromURL) {
+        return false
+    }
+    return true
+}
+
 func getGamesMeta(from: URL) throws -> [GamesMeta] {
     /**
      scans a folder and returns an array of steam games meta
@@ -193,7 +218,8 @@ func getGamesMeta(from: URL) throws -> [GamesMeta] {
             let file  = try readFile(at: url)
             let parsed = parseACFToDict(from: file)
             let meta = mapDictToGamesMeta(from: parsed)
-            meta.libraryURL = from
+            meta.gameURL = from.appendingPathComponent("common").appendingPathComponent(meta.installdir)
+            meta.isNative = getIsNative(fromURL: meta.gameURL!)
             array.append(meta)
         }
     }
@@ -541,6 +567,13 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
     try safeShell(command)
 }
 
+func launchNativeGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil) async throws {
+    let arguments = options != nil ? " " + options!.gameArguments : ""
+    let command = "\(getInlineEnvs(from: options!)) /Applications/Steam.app/Contents/MacOS/steam_osx -nochatui -nofriendsui -silent -applaunch \(String(id))" + arguments
+    console.warn(command)
+    try safeShell(command)
+}
+
 func installGame(id: String) {
 //    https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip
 //    steamcmd +login YOUR_USERNAME +app_update 1489410 validate +quit
@@ -604,6 +637,6 @@ func localizedString(forKey: String, value: String? = nil) -> String {
 
 func showFolder(url: URL) {
     let targetURL: URL = url
-
+print(url)
     NSWorkspace.shared.open(targetURL)
 }

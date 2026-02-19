@@ -34,7 +34,13 @@ struct GameHeader: View {
                 libraryPageGlobals.setLoader(state: true)
                 Task {
                     do {
-                        try await launchWindowsGame( id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                        let isNative = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })?.isNative ?? false
+                        if(isNative) {
+                            try await launchNativeGame(id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                        } else {
+                            try await launchWindowsGame(id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                        }
+                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                             libraryPageGlobals.setLoader(state: false)
                         }
@@ -51,11 +57,8 @@ struct GameHeader: View {
             })
             .padding(.leading, 5)
             BigButton(text: "📁", action: {
-                let meta = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })
-                let installdir = meta!.installdir
-                let librarFolder = meta!.libraryURL
-                let url = librarFolder!.appendingPathComponent("common").appendingPathComponent(installdir)
-                showFolder(url: url)
+                let meta = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })!
+                showFolder(url: meta.gameURL!)
             })
             .padding(.leading, 5)
             Spacer()
