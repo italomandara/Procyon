@@ -14,11 +14,11 @@ struct GameDetailView: View {
     @Binding var game: SteamGame?
     @State private var player = AVPlayer()
     @State private var isMuted: Bool = true
-//    @Binding var showDetailView: Bool
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @StateObject var gameOptions = GameOptions()
+    var gameFolder: String { libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })?.appid ?? "" }
     
-    var body: some View {        
+    var body: some View {
         if (game != nil) {
             VStack (alignment: .leading) {
                 ZStack(alignment: .bottom ) {

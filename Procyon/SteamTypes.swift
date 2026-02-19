@@ -335,13 +335,13 @@ struct InstalledDepot {
     var size: String
 }
 
-struct SteamACFMeta {
-    var appid: String
+class SteamACFMeta {
+    var appid: String = ""
     var universe: String?
     var LauncherPath: String?
     var name: String?
     var StateFlags: String?
-    var installdir: String
+    var installdir: String = ""
     var LastUpdated: String?
     var LastPlayed: String?
     var SizeOnDisk: String?

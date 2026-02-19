@@ -51,7 +51,11 @@ struct GameHeader: View {
             })
             .padding(.leading, 5)
             BigButton(text: "📁", action: {
-                showFolder(forGameId: game!.id, fromFolders: libraryPageGlobals.folders)
+                let meta = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })
+                let installdir = meta!.installdir
+                let librarFolder = meta!.libraryURL
+                let url = librarFolder!.appendingPathComponent("common").appendingPathComponent(installdir)
+                showFolder(url: url)
             })
             .padding(.leading, 5)
             Spacer()

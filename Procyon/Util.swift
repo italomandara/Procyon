@@ -181,18 +181,19 @@ func getIDsFromFolder(dest: URL) throws -> [String] {
     } ?? []
 }
 
-func getGamesMeta(from: URL) throws -> [SteamACFMeta] {
+func getGamesMeta(from: URL) throws -> [GamesMeta] {
     /**
      scans a folder and returns an array of steam games meta
      */
-    var array: [SteamACFMeta] = []
+    var array: [GamesMeta] = []
     try withSecurityScope(for: from) {
         let f = FileManager.default
         let urls = try f.contentsOfDirectory(at: from, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants, .skipsPackageDescendants]).filter { $0.pathExtension == "acf" }
         try urls.forEach { url in
             let file  = try readFile(at: url)
             let parsed = parseACFToDict(from: file)
-            let meta = mapDictToSteamACFMeta(from: parsed)
+            let meta = mapDictToGamesMeta(from: parsed)
+            meta.libraryURL = from
             array.append(meta)
         }
     }
@@ -222,11 +223,11 @@ func parseACFToDict(from: String) -> [String:String] {
     return dictionary
 }
 
-func mapDictToSteamACFMeta(from: [String:String]) -> SteamACFMeta {
+func mapDictToGamesMeta(from: [String:String]) -> GamesMeta {
     /**
      Incomplete it only maps appid and installdir
      */
-    return SteamACFMeta(appid: from["appid"] ?? "unknown", installdir: from["installdir"] ?? "unknown")
+    return GamesMeta(appid: from["appid"] ?? "unknown", installdir: from["installdir"] ?? "unknown")
 }
 
 func mapGamesACFMeta (from: URL) -> [SteamACFMeta] {
@@ -601,13 +602,8 @@ func localizedString(forKey: String, value: String? = nil) -> String {
     return "\(forKey) \(value ?? "")"
 }
 
-//func getGameFolder(forGameId: Int, fromFolders: [String]) -> URL {
-//    let f = FileManager.default
-//    fromFolders.forEach { (path) in
-//        
-//    }
-//}
+func showFolder(url: URL) {
+    let targetURL: URL = url
 
-func showFolder(forGameId: Int, fromFolders: [String]) {
-//    let url = getGameFolder(forGameId: forGameId, fromFolders: fromFolders)
+    NSWorkspace.shared.open(targetURL)
 }

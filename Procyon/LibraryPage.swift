@@ -15,7 +15,7 @@ enum SortingOptions {
 }
 
 class LibraryPageGlobals: ObservableObject {
-    @Published var gamesMeta: [SteamACFMeta] = []
+    @Published var gamesMeta: [GamesMeta] = []
     @Published var folders: [String] = []
     @Published var showOptions: Bool = false
     @Published var filter: String = ""
