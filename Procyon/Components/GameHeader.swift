@@ -62,35 +62,47 @@ struct GameHeader: View {
             })
             .padding(.leading, 5)
             Spacer()
-            HStack(alignment: .center){
-                Text("Available for:")
-                if (game!.platforms.mac) {
-                    Image("os-apple")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20)
+            HStack(alignment: .center) {
+                if(game!.controllerSupport == "full") {
+                    Image(systemName: "gamecontroller.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)              // icon size 
+                    .background(Color.black.opacity(0.5))     // semi-transparent black
+                    .clipShape(Circle())                       // make it circular
+                    .foregroundStyle(.white)                   // icon color
+
                 }
-                if (game!.platforms.linux) {
-                    Image("os-linux")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20)
+                HStack(alignment: .center){
+                    Text("Available for:")
+                    if (game!.platforms.mac) {
+                        Image("os-apple")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                    }
+                    if (game!.platforms.linux) {
+                        Image("os-linux")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                    }
+                    if (game!.platforms.windows) {
+                        Image("os-win")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                    }
                 }
-                if (game!.platforms.windows) {
-                    Image("os-win")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20)
-                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 20)
+                .background(.clear)
+                .overlay(
+                    Capsule()
+                        .stroke(.white, lineWidth: 2)
+                )
+                .clipShape(.capsule)
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 20)
-            .background(.clear)
-            .overlay(
-                Capsule()
-                    .stroke(.white, lineWidth: 2)
-            )
-            .clipShape(.capsule)
         }
         .foregroundStyle(.white)
         .sheet(isPresented: $showGameOptions) {

@@ -44,17 +44,6 @@ struct GameDetailView: View {
                             .resizable()
                             .scaledToFit()
                     }
-                    if(game!.controllerSupport == "full") {
-                        Image(systemName: "gamecontroller.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)              // icon size
-                        .padding(4)                                // space inside the circle
-                        .background(Color.black.opacity(0.5))     // semi-transparent black
-                        .clipShape(Circle())                       // make it circular
-                        .foregroundStyle(.white)                   // icon color
-                        .padding(8)
-                    }
                     GameHeader(game: $game, showDetailView: $libraryPageGlobals.showDetailView)
                         .padding()
                         .padding(.top, 40)

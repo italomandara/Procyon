@@ -52,8 +52,6 @@ struct GameThumbnail: View {
                             libraryPageGlobals.selectedGame = item
                             libraryPageGlobals.setLoader(state: true)
 
-
-
                             Task {
                                 do {
                                     let gameOptKey = namespacedKey("GameOptions", String(item.id))
