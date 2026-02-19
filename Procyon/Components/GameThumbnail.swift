@@ -26,7 +26,7 @@ struct GameThumbnail: View {
                         }
                         .resizable()
                         .scaledToFit()
-                    if (libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.id) })!.isNative) {
+                    if (libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.id) })?.isNative ?? false) {
                         Image("os-apple")
                             .resizable()
                             .scaledToFit()

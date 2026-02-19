@@ -220,6 +220,7 @@ func getGamesMeta(from: URL) throws -> [GamesMeta] {
             let meta = mapDictToGamesMeta(from: parsed)
             meta.gameURL = from.appendingPathComponent("common").appendingPathComponent(meta.installdir)
             meta.isNative = getIsNative(fromURL: meta.gameURL!)
+            meta.libraryFolder = from
             array.append(meta)
         }
     }

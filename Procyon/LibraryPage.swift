@@ -164,9 +164,12 @@ struct LibraryPage: View {
                 console.warn("There are no folders to scan.")
             } else {
                 for folder in libraryPageGlobals.folders {
-                    let folderUrl = URL(string: folder)!
+                    let folderURL = URL(string: folder)!
+                    if (!libraryPageGlobals.gamesMeta.filter { $0.libraryFolder == folderURL }.isEmpty) {
+                        return // in memory cache just in case you disconnect/reconnect an external drive that has been scanned already
+                    }
                     do {
-                        let foldergamesMeta = try getGamesMeta(from: folderUrl)
+                        let foldergamesMeta = try getGamesMeta(from: folderURL)
                         console.log("found \(foldergamesMeta.count) games in the current folder")
                         libraryPageGlobals.gamesMeta.append(contentsOf: foldergamesMeta)
                     } catch {
