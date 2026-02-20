@@ -27,39 +27,59 @@ struct GamesList: View {
             .padding(.horizontal)
         }
         .toolbar {
-            ToolbarItemGroup(placement: .principal) {
-                HStack {
-                    Button {
-                        libraryPageGlobals.showOptions = true
-                    } label: {
-                        Image(systemName: "gear")
-                    }
-                    
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    libraryPageGlobals.showOptions = true
+                } label: {
+                    Image(systemName: "gear")
+                }
+            }
+            ToolbarItemGroup(placement: .secondaryAction) {
+                HStack{
                     Button("Library") {
                         router.go(to: .library)
-                    }
-                    
+                    }.controlSize(.small)
+                    Divider()
                     Button("Profile") {
                         router.go(to: .profile)
-                    }
+                    }.controlSize(.small)
+                }.padding(.horizontal)
+            }
+            ToolbarItemGroup(placement: .principal) {
+                HStack {
                     HStack {
-                        Image(systemName: "magnifyingglass")
+                        Button {
+                            if (libraryPageGlobals.filter.isEmpty) {
+                                return
+                            } else {
+                                libraryPageGlobals.filter = ""
+                            }
+                        } label: {
+                            Image(systemName: libraryPageGlobals.filter.isEmpty ? "magnifyingglass": "xmark.circle")
+                        }
+                        .buttonStyle(.plain)
+                        .controlSize(.small)
                         TextField("Search Game...", text: $libraryPageGlobals.filter)
                             .textFieldStyle(.plain)
                             .disableAutocorrection(true)
                             .focusEffectDisabled()
                             .textFieldStyle(.plain)
+                            .frame(width: 100)
+                            .controlSize(.small)
                     }
+                    Divider()
                     HStack {
                         Image(systemName: "arrow.up.arrow.down.circle")
                         Picker("", selection: $libraryPageGlobals.sortBy) {
                             Text("Name").tag(SortingOptions.name)
                             Text("Release Date").tag(SortingOptions.releaseDate)
-                        }.pickerStyle(.menu)
+                        }
+                        .pickerStyle(.menu)
+                        .controlSize(.small)
                     }
-                    
-                    Text("Showing \(libraryPageGlobals.filteredGames.count)/\(libraryPageGlobals.games.count)").font(Font.footnote).padding(.trailing)
-                }
+                    Divider()
+                    Text("Showing \(libraryPageGlobals.filteredGames.count)/\(libraryPageGlobals.games.count)").font(Font.footnote)
+                }.padding(.horizontal)
             }
         }
     }

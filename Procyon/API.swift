@@ -111,9 +111,12 @@ final class SteamAPI {
         setProgress(self.progress)
         
         for (index, meta) in meta.enumerated() {
+            let bDownloaded = Double(meta.BytesDownloaded ?? "0")!
+            let bToDownload = Double(meta.BytesToDownload ?? "0")!
+            let downloadProgress: Double = meta.isDownloaded() ? 100 : (bDownloaded / bToDownload) * 100
             do {
                 if let gameInfo = try await self.fetchGameInfo(appID: meta.appid) {
-                    items.append(Game(from: gameInfo, id: meta.id, isNative: meta.isNative))
+                    items.append(Game(from: gameInfo, id: meta.id, isNative: meta.isNative, downloadProgress: Double(downloadProgress)))
                 }
             } catch {
                 console.warn(error.localizedDescription)

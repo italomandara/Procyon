@@ -16,11 +16,11 @@ struct GameHeader: View {
     @State private var showGameOptions: Bool = false
     
     var developers: String {
-        "Developer: \(game?.developers.joined(separator: ", ") ?? ("Unknown Developer"))"
+        "Developer: \(game!.developers.joined(separator: ", "))"
     }
     
     var publishers: String { // @To do: DRY
-        "Publisher: \(game?.publishers.joined(separator: ", ") ?? ("Unknown Publisher"))"
+        "Publisher: \(game!.publishers.joined(separator: ", "))"
     }
     
     var body: some View {
@@ -28,31 +28,33 @@ struct GameHeader: View {
         HStack (alignment: .bottom) {
             VStack(alignment: .leading){
                 Text(game!.name).font(.largeTitle.bold())
-                Text(developers).font(.title2)
-                Text(publishers).font(.title3)
+                Text(developers).font(.footnote)
+                Text(publishers).font(.footnote)
             }
-            BigButton(text: "Play", action: {
-                libraryPageGlobals.setLoader(state: true)
-                Task {
-                    do {
-                        
-                        if(game!.isNative) {
-                            try await launchNativeGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
-                        } else {
-                            try await launchWindowsGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
-                        }
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+            if(game!.downloadProgress == 100) {
+                BigButton(text: "Play", action: {
+                    libraryPageGlobals.setLoader(state: true)
+                    Task {
+                        do {
+                            
+                            if(game!.isNative) {
+                                try await launchNativeGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                            } else {
+                                try await launchWindowsGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                                libraryPageGlobals.setLoader(state: false)
+                            }
+                        } catch {
                             libraryPageGlobals.setLoader(state: false)
+                            console.warn("Error launching game: \(error)")
                         }
-                    } catch {
-                        libraryPageGlobals.setLoader(state: false)
-                        console.warn("Error launching game: \(error)")
+                        showDetailView = false
                     }
-                    showDetailView = false
-                }
-            })
-            .padding(.leading, 24)
+                })
+                .padding(.leading, 24)
+            }
             Spacer()
             HStack(alignment: .center) {
                 Button {

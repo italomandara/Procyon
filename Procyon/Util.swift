@@ -218,7 +218,7 @@ func getGamesMeta(from: URL) throws -> [GamesMeta] {
             let parsed = parseACFToDict(from: file)
             let meta = mapDictToGamesMeta(from: parsed)
             meta.gameURL = from.appendingPathComponent("common").appendingPathComponent(meta.installdir)
-            meta.isNative = getIsNative(fromURL: meta.gameURL!)
+            meta.isNative = meta.isDownloaded() ? getIsNative(fromURL: meta.gameURL!) : false
             meta.libraryFolder = from
             array.append(meta)
         }
@@ -253,7 +253,7 @@ func mapDictToGamesMeta(from: [String:String]) -> GamesMeta {
     /**
      Incomplete it only maps appid and installdir
      */
-    return GamesMeta(appid: from["appid"] ?? "unknown", installdir: from["installdir"] ?? "unknown")
+    return GamesMeta(appid: from["appid"] ?? "unknown", installdir: from["installdir"] ?? "unknown", bytesDownloaded: from["BytesDownloaded"] ?? "0", BytesTodownload: from["BytesToDownload"] ?? "0")
 }
 
 func mapGamesACFMeta (from: URL) -> [SteamACFMeta] {

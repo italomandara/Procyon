@@ -12,20 +12,26 @@ class GamesMeta: SteamACFMeta {
     var libraryFolder: URL
     var isNative: Bool
     var id: String { libraryFolder.relativeString + appid }
+    func isDownloaded() -> Bool {
+        (self.BytesToDownload == "0" || self.BytesToDownload == self.BytesDownloaded)
+    }
     
-    init(appid: String, installdir: String, gameURL: URL? = nil, isNative: Bool = false, libraryFolder: URL = URL(string: "/")!) {
+    init(appid: String, installdir: String, gameURL: URL? = nil, isNative: Bool = false, libraryFolder: URL = URL(string: "/")!, bytesDownloaded: String, BytesTodownload: String) {
         self.gameURL = gameURL
         self.isNative = isNative
         self.libraryFolder = libraryFolder
         super.init()
         self.appid = appid
         self.installdir = installdir
+        self.BytesDownloaded = bytesDownloaded
+        self.BytesToDownload = BytesTodownload
     }
 }
 
 struct Game: Identifiable {
     var id: String
     var isNative: Bool
+    var downloadProgress: Double
     
     // taken from SteamGame
     let type: String
@@ -78,9 +84,10 @@ struct Game: Identifiable {
     let contentDescriptors: ContentDescriptors?
     let ratings: Ratings?
     
-    init(from: SteamGame, id: String, isNative: Bool) {
+    init(from: SteamGame, id: String, isNative: Bool, downloadProgress: Double) {
         self.id = id
         self.isNative = isNative
+        self.downloadProgress = downloadProgress
         
         // SteamGame property
         self.type = from.type
@@ -217,5 +224,5 @@ extension Game {
             usk: RatingBody(rating: "12", requiredAge: "12", descriptors: "Violence")
         )
     )
-    static let mock = Game(from: Game.steamMock, id: "example", isNative: true)
+    static let mock = Game(from: Game.steamMock, id: "example", isNative: true, downloadProgress: 100)
 }

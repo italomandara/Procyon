@@ -48,35 +48,41 @@ struct GameThumbnail: View {
                         }
                         Spacer()
                         
-                        Button {
-                            libraryPageGlobals.selectedGame = item
-                            libraryPageGlobals.setLoader(state: true)
+                        if(item.downloadProgress == 100) {
+                            Button {
+                                libraryPageGlobals.selectedGame = item
+                                libraryPageGlobals.setLoader(state: true)
 
-                            Task {
-                                do {
-                                    let gameOptKey = namespacedKey("GameOptions", String(item.steamAppID))
-                                    let gameOptions: GameOptions = GameOptions()
-                                    if let gameOptionsData: GameOptionsData = readUsrDefData(key: gameOptKey) {
+                                Task {
+                                    do {
+                                        let gameOptKey = namespacedKey("GameOptions", String(item.steamAppID))
                                         let gameOptions: GameOptions = GameOptions()
-                                        gameOptions.set(data: gameOptionsData)
-                                    }
-                                    if(item.isNative) {
-                                        try await launchNativeGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
-                                    } else {
-                                        try await launchWindowsGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                                        if let gameOptionsData: GameOptionsData = readUsrDefData(key: gameOptKey) {
+                                            let gameOptions: GameOptions = GameOptions()
+                                            gameOptions.set(data: gameOptionsData)
+                                        }
+                                        if(item.isNative) {
+                                            try await launchNativeGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                        } else {
+                                            try await launchWindowsGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                                            libraryPageGlobals.setLoader(state: false)
+                                        }
+                                    } catch {
+                                        console.warn(error.localizedDescription)
                                         libraryPageGlobals.setLoader(state: false)
                                     }
-                                } catch {
-                                    console.warn(error.localizedDescription)
-                                    libraryPageGlobals.setLoader(state: false)
                                 }
+                            } label: {
+                                Label("Play", systemImage: "play.fill")
                             }
-                        } label: {
-                            Label("Play", systemImage: "play.fill")
+                            .cornerRadius(20)
+                        } else {
+                            ProgressView(value: item.downloadProgress, total: 100,
+                                 label: { Text("Downloading...").font(.footnote)
+                            }).frame(height: 30)
                         }
-                        .cornerRadius(20)
                     }
                     .padding(.bottom, 8)
                 }.foregroundStyle(.white)
@@ -86,6 +92,7 @@ struct GameThumbnail: View {
             .cornerRadius(30)
         }
         .buttonStyle(.plain)
+        .opacity(item.downloadProgress == 100 ? 1 : 0.25)
     }
 }
 
