@@ -14,6 +14,7 @@ let columns = [
 ]
 
 struct GamesList: View {
+    @EnvironmentObject var router: Router
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     
     var body: some View {
@@ -24,8 +25,42 @@ struct GamesList: View {
                 }
             }
             .padding(.horizontal)
-        }.safeAreaInset(edge: .bottom, spacing: nil) {
-            Toolbar(showOptions: $libraryPageGlobals.showOptions).padding()
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .principal) {
+                HStack {
+                    Button {
+                        libraryPageGlobals.showOptions = true
+                    } label: {
+                        Image(systemName: "gear")
+                    }
+                    
+                    Button("Library") {
+                        router.go(to: .library)
+                    }
+                    
+                    Button("Profile") {
+                        router.go(to: .profile)
+                    }
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                        TextField("Search Game...", text: $libraryPageGlobals.filter)
+                            .textFieldStyle(.plain)
+                            .disableAutocorrection(true)
+                            .focusEffectDisabled()
+                            .textFieldStyle(.plain)
+                    }
+                    HStack {
+                        Image(systemName: "arrow.up.arrow.down.circle")
+                        Picker("", selection: $libraryPageGlobals.sortBy) {
+                            Text("Name").tag(SortingOptions.name)
+                            Text("Release Date").tag(SortingOptions.releaseDate)
+                        }.pickerStyle(.menu)
+                    }
+                    
+                    Text("Showing \(libraryPageGlobals.filteredGames.count)/\(libraryPageGlobals.games.count)").font(Font.footnote).padding(.trailing)
+                }
+            }
         }
     }
 }

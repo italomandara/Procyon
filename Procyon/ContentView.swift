@@ -50,7 +50,9 @@ struct ContentView: View {
                     Button("Go to Library") {
                         router.go(to: .library)
                     }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .toolbarTitleDisplayMode(.inline)
             }
         }
         .preferredColorScheme(.dark)

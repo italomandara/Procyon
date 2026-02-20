@@ -191,10 +191,7 @@ func folderContainsFile(withExtension ext: String, at url: URL) -> Bool {
     }
 
     for case let fileURL as URL in enumerator {
-        // Quick check via path extension
-//        print(fileURL.absoluteString)
         if fileURL.pathExtension.caseInsensitiveCompare(ext) == .orderedSame {
-            print("found native app")
             return true
         }
     }

@@ -170,7 +170,7 @@ struct LibraryPage: View {
                     }
                     do {
                         let foldergamesMeta = try getGamesMeta(from: folderURL)
-                        console.log("found \(foldergamesMeta.count) games in the current folder")
+//                        console.log("found \(foldergamesMeta.count) games in the current folder")
                         libraryPageGlobals.gamesMeta.append(contentsOf: foldergamesMeta)
                     } catch {
                         console.error(error.localizedDescription)

@@ -12,18 +12,16 @@ struct Toolbar: View {
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @Binding var showOptions: Bool
     
-    var body: some View
-    {
+    var body: some View {
         HStack {
             Button {
-                showOptions = true
-            } label: {
-                Image(systemName: "gear")
-            }
-            .frame(width: 25)
-            .cornerRadius(20)
-//            Button("Store") {
-//            }.cornerRadius(20)
+                    showOptions = true
+                } label: {
+                    Image(systemName: "gear")
+                }
+                .frame(width: 25)
+                .cornerRadius(20)
+        
             Button("Library") {
                 router.go(to: .library)
             }.cornerRadius(20)

@@ -19,8 +19,9 @@ struct ProcyonApp: App {
             ContentView()
                 .frame(width: appWindowResizable ? nil : windowWidth, height: appWindowResizable ? nil : windowHeight)
         }
-        .windowStyle(.hiddenTitleBar)
+//        .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified)
+//        .windowToolbarLabelStyle(fixed: .iconOnly)
         .defaultSize(width: windowWidth, height: windowHeight)
         .windowResizability(.contentSize)
     }
