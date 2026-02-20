@@ -113,7 +113,7 @@ final class SteamAPI {
         for (index, meta) in meta.enumerated() {
             do {
                 if let gameInfo = try await self.fetchGameInfo(appID: meta.appid) {
-                    items.append(Game(from: gameInfo, id: meta.id))
+                    items.append(Game(from: gameInfo, id: meta.id, isNative: meta.isNative))
                 }
             } catch {
                 console.warn(error.localizedDescription)
@@ -134,50 +134,6 @@ final class SteamAPI {
         }
 //        console.warn("\(items.map(\.steamAppID))")
         return items
-    }
-    func fetchGameInfoArray(meta: [GamesMeta], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
-        console.log("requesting \(meta.count.description) games")
-        let headers: HTTPHeaders = ["x-api-key": apiKey]
-        var items: [SteamGame] = []
-        let appIDs: [String] = meta.map(\.appid)
-        let uncached: [String] = appIDs.filter { id in
-            // Skip blacklisted IDs
-            guard cacheBlacklist.contains(id) == false else { return false }
-            // Only include IDs that are not present in the cache
-            return cache[id] == nil
-        }
-        let cached = cache.filter { appIDs.contains($0.key) }
-
-        console.warn("cache size: \(cache.count.description)")
-        console.warn("uncached size: \(uncached.count.description)")
-        
-        if(uncached.count < 1) {
-            console.warn("returning cached")
-            return cached.map { $0.value }
-        }
-        
-        items.append(contentsOf: cached.map { $0.value }) // start to populate with all cached games
-        console.log("populating with cached data items: \(cached.count)")
-        
-        let urlString = "\(baseAPIMURL)?appids=\(uncached.joined(separator: ","))" //just request uncached ids
-        console.log("requesting new items: [\(uncached.joined(separator: ","))]")
-        
-        do {
-            let data = try await AF.request(urlString, method: .get, headers: headers)
-                .validate(statusCode: 200..<300)
-                .serializingData()
-                .value
-            let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
-            items.append(contentsOf: root.data) // append the remaining reqested from the api
-            root.data.forEach { cache[String($0.steamAppID)] = $0 } //cache the new games that were fetched
-            console.log("caching new items: \(root.data.count)")
-            saveCache()
-            setProgress(100)
-            return items
-        } catch {
-            console.error("fetchGameInfoArray failed: \(error.localizedDescription)")
-        }
-        return []
     }
 }
 

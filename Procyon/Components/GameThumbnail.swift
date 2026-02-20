@@ -14,7 +14,6 @@ struct GameThumbnail: View {
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     
     var body: some View {
-        let isNative = getMeta(libraryPageGlobals.gamesMeta, byID: String(item.id))?.isNative ?? false
         
         Button(action: {
             libraryPageGlobals.showDetailView =  true
@@ -28,7 +27,7 @@ struct GameThumbnail: View {
                         }
                         .resizable()
                         .scaledToFit()
-                    if (isNative == true) {
+                    if (item.isNative == true) {
                         Image(systemName: "apple.logo")            // icon size
                             .resizable()
                             .frame(width: 16, height: 16)
@@ -61,8 +60,7 @@ struct GameThumbnail: View {
                                         let gameOptions: GameOptions = GameOptions()
                                         gameOptions.set(data: gameOptionsData)
                                     }
-                                    let isNative = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.steamAppID) })?.isNative ?? false
-                                    if(isNative) {
+                                    if(item.isNative) {
                                         try await launchNativeGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                                     } else {
                                         try await launchWindowsGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)

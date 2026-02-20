@@ -25,6 +25,7 @@ class GamesMeta: SteamACFMeta {
 
 struct Game: Identifiable {
     var id: String
+    var isNative: Bool
     
     // taken from SteamGame
     let type: String
@@ -77,8 +78,11 @@ struct Game: Identifiable {
     let contentDescriptors: ContentDescriptors?
     let ratings: Ratings?
     
-    init(from: SteamGame, id: String) {
+    init(from: SteamGame, id: String, isNative: Bool) {
         self.id = id
+        self.isNative = isNative
+        
+        // SteamGame property
         self.type = from.type
         self.name = from.name
         self.steamAppID = from.steamAppID
@@ -213,5 +217,5 @@ extension Game {
             usk: RatingBody(rating: "12", requiredAge: "12", descriptors: "Violence")
         )
     )
-    static let mock = Game(from: Game.steamMock, id: "example")
+    static let mock = Game(from: Game.steamMock, id: "example", isNative: true)
 }

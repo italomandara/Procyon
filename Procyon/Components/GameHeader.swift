@@ -24,7 +24,6 @@ struct GameHeader: View {
     }
     
     var body: some View {
-        let isNative = getMeta(libraryPageGlobals.gamesMeta, byID: String(game!.id))?.isNative ?? false
         
         HStack (alignment: .bottom) {
             VStack(alignment: .leading){
@@ -37,7 +36,7 @@ struct GameHeader: View {
                 Task {
                     do {
                         
-                        if(isNative) {
+                        if(game!.isNative) {
                             try await launchNativeGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                         } else {
                             try await launchWindowsGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
@@ -75,7 +74,7 @@ struct GameHeader: View {
                     .frame(width: 20)
                     .foregroundStyle(.white)
                 }.buttonStyle(.plain)
-                if(isNative == true) {
+                if(game!.isNative == true) {
                     Image(systemName: "apple.logo")
                     .resizable()
                     .scaledToFit()
