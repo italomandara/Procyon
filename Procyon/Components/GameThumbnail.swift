@@ -30,11 +30,13 @@ struct GameThumbnail: View {
                         .scaledToFit()
                     if (isNative == true) {
                         Image(systemName: "apple.logo")            // icon size
+                            .resizable()
+                            .frame(width: 16, height: 16)
                             .padding(8)                                // space inside the circle
-                            .background(Color.black.opacity(0.5))     // semi-transparent black
+                            .background(Color.black.opacity(0.1))     // semi-transparent black
                             .clipShape(Circle())                       // make it circular
-                            .foregroundStyle(.white)                   // icon color
-                            .padding()
+                            .foregroundStyle(.white.opacity(0.9))                   // icon color
+                            .padding(8)
                     }
                 }
                 VStack (alignment: .leading, spacing: 6) {

@@ -25,6 +25,8 @@ class GamesMeta: SteamACFMeta {
 
 struct Game: Identifiable {
     var id: String
+    
+    // taken from SteamGame
     let type: String
     let name: String
     let steamAppID: Int
@@ -76,7 +78,7 @@ struct Game: Identifiable {
     let ratings: Ratings?
     
     init(from: SteamGame, id: String) {
-        self.id=id
+        self.id = id
         self.type = from.type
         self.name = from.name
         self.steamAppID = from.steamAppID

@@ -54,35 +54,41 @@ struct GameHeader: View {
                 }
             })
             .padding(.leading, 24)
-            BigButton(text: "⚙️", action: {
-                showGameOptions = true
-            })
-            .padding(.leading, 5)
-            BigButton(text: "📁", action: {
-                let meta = getMeta(libraryPageGlobals.gamesMeta, byID: String(game!.id))!
-                showFolder(url: meta.gameURL!)
-            })
-            .padding(.leading, 5)
             Spacer()
             HStack(alignment: .center) {
+                Button {
+                    showGameOptions = true
+                } label: {
+                    Image(systemName: "gear")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                    .foregroundStyle(.white)
+                }.buttonStyle(.plain)
+                Button {
+                    let meta = getMeta(libraryPageGlobals.gamesMeta, byID: String(game!.id))!
+                    showFolder(url: meta.gameURL!)
+                } label: {
+                    Image(systemName: "folder.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                    .foregroundStyle(.white)
+                }.buttonStyle(.plain)
                 if(isNative == true) {
                     Image(systemName: "apple.logo")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24, height: 24)              // icon size
-                    .background(Color.black.opacity(0.5))     // semi-transparent black
-                    .clipShape(Circle())                       // make it circular
-                    .foregroundStyle(.white)                   // icon color
+                    .frame(width: 20)
+                    .foregroundStyle(.white)
 
                 }
                 if(game!.controllerSupport == "full") {
                     Image(systemName: "gamecontroller.circle.fill")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24, height: 24)              // icon size 
-                    .background(Color.black.opacity(0.5))     // semi-transparent black
-                    .clipShape(Circle())                       // make it circular
-                    .foregroundStyle(.white)                   // icon color
+                    .frame(width: 20)
+                    .foregroundStyle(.white)
 
                 }
                 HStack(alignment: .center){
