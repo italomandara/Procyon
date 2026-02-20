@@ -184,7 +184,7 @@ func getIDsFromFolder(dest: URL) throws -> [String] {
 func folderContainsFile(withExtension ext: String, at url: URL) -> Bool {
     let f = FileManager.default
     let keys: [URLResourceKey] = [.isRegularFileKey, .isDirectoryKey]
-    let options: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles]
+    let options: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles, .skipsPackageDescendants]
 
     guard let enumerator = f.enumerator(at: url, includingPropertiesForKeys: keys, options: options) else {
         return false
@@ -192,7 +192,9 @@ func folderContainsFile(withExtension ext: String, at url: URL) -> Bool {
 
     for case let fileURL as URL in enumerator {
         // Quick check via path extension
+//        print(fileURL.absoluteString)
         if fileURL.pathExtension.caseInsensitiveCompare(ext) == .orderedSame {
+            print("found native app")
             return true
         }
     }
@@ -640,4 +642,11 @@ func showFolder(url: URL) {
     let targetURL: URL = url
 print(url)
     NSWorkspace.shared.open(targetURL)
+}
+
+func getMeta(_ gameMetaArray: [GamesMeta], byID: String) -> GamesMeta? {
+    /**
+     find the corresponding meta by id where the id is the unique id and not the steam app id
+     */
+    return gameMetaArray.first(where: { $0.id == byID })
 }

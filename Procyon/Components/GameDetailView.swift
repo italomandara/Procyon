@@ -11,12 +11,15 @@ import Flow
 import AVKit
 
 struct GameDetailView: View {
-    @Binding var game: SteamGame?
+    @Binding var game: Game?
     @State private var player = AVPlayer()
     @State private var isMuted: Bool = true
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @StateObject var gameOptions = GameOptions()
-    var gameFolder: String { libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })?.appid ?? "" }
+    var gameFolder: String {
+        let meta = getMeta(libraryPageGlobals.gamesMeta, byID: String(game!.id))!
+        return meta.libraryFolder.appendingPathComponent(meta.installdir).path()
+    }
     
     var body: some View {
         if (game != nil) {
@@ -135,7 +138,7 @@ struct GameDetailView: View {
 }
 
 #Preview {
-    @State @Previewable var game: SteamGame? = .mock
+    @State @Previewable var game: Game? = .mock
     @State @Previewable var showDetailView: Bool = true
     
     ZStack (alignment: .topTrailing) {

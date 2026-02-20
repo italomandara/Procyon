@@ -84,7 +84,6 @@ final class SteamAPI {
             return nil
         }
         if let cached = cache[appID] {
-//            console.warn("Returning from cache for id \(appID)")
             return cached
         }
         
@@ -99,23 +98,22 @@ final class SteamAPI {
             
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
             
-//            console.warn("Decoded \(root.data.count) items for game \(appID)")
             cache[appID] = root.data[0]
             saveCache()
             return root.data[0]
         }
     }
-    func fetchGamesInfo(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
-        var items: [SteamGame] = []
-        let total = appIDs.count
+    func fetchGamesInfo(meta: [GamesMeta], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [Game] {
+        var items: [Game] = []
+        let total = meta.count
         // Reset progress at start
         self.progress = 0
         setProgress(self.progress)
         
-        for (index, appID) in appIDs.enumerated() {
+        for (index, meta) in meta.enumerated() {
             do {
-                if let gameInfo = try await self.fetchGameInfo(appID: appID) {
-                    items.append(gameInfo)
+                if let gameInfo = try await self.fetchGameInfo(appID: meta.appid) {
+                    items.append(Game(from: gameInfo, id: meta.id))
                 }
             } catch {
                 console.warn(error.localizedDescription)
@@ -134,13 +132,14 @@ final class SteamAPI {
             self.progress = 100
             setProgress(self.progress)
         }
-        console.warn("\(items.map(\.id))")
+//        console.warn("\(items.map(\.steamAppID))")
         return items
     }
-    func fetchGameInfoArray(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
-        console.log("requesting \(appIDs.count.description) games")
+    func fetchGameInfoArray(meta: [GamesMeta], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
+        console.log("requesting \(meta.count.description) games")
         let headers: HTTPHeaders = ["x-api-key": apiKey]
         var items: [SteamGame] = []
+        let appIDs: [String] = meta.map(\.appid)
         let uncached: [String] = appIDs.filter { id in
             // Skip blacklisted IDs
             guard cacheBlacklist.contains(id) == false else { return false }
@@ -170,7 +169,7 @@ final class SteamAPI {
                 .value
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
             items.append(contentsOf: root.data) // append the remaining reqested from the api
-            root.data.forEach { cache[String($0.id)] = $0 } //cache the new games that were fetched
+            root.data.forEach { cache[String($0.steamAppID)] = $0 } //cache the new games that were fetched
             console.log("caching new items: \(root.data.count)")
             saveCache()
             setProgress(100)

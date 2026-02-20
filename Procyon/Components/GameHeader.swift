@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GameHeader: View {
-    @Binding var game: SteamGame?
+    @Binding var game: Game?
     @Binding var showDetailView: Bool
     @EnvironmentObject var appGlobals: AppGlobals
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
@@ -24,6 +24,8 @@ struct GameHeader: View {
     }
     
     var body: some View {
+        let isNative = getMeta(libraryPageGlobals.gamesMeta, byID: String(game!.id))?.isNative ?? false
+        
         HStack (alignment: .bottom) {
             VStack(alignment: .leading){
                 Text(game!.name).font(.largeTitle.bold())
@@ -34,11 +36,11 @@ struct GameHeader: View {
                 libraryPageGlobals.setLoader(state: true)
                 Task {
                     do {
-                        let isNative = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })?.isNative ?? false
+                        
                         if(isNative) {
-                            try await launchNativeGame(id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                            try await launchNativeGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                         } else {
-                            try await launchWindowsGame(id: String(game!.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                            try await launchWindowsGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                         }
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
@@ -57,12 +59,22 @@ struct GameHeader: View {
             })
             .padding(.leading, 5)
             BigButton(text: "📁", action: {
-                let meta = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(game!.id) })!
+                let meta = getMeta(libraryPageGlobals.gamesMeta, byID: String(game!.id))!
                 showFolder(url: meta.gameURL!)
             })
             .padding(.leading, 5)
             Spacer()
             HStack(alignment: .center) {
+                if(isNative == true) {
+                    Image(systemName: "apple.logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)              // icon size
+                    .background(Color.black.opacity(0.5))     // semi-transparent black
+                    .clipShape(Circle())                       // make it circular
+                    .foregroundStyle(.white)                   // icon color
+
+                }
                 if(game!.controllerSupport == "full") {
                     Image(systemName: "gamecontroller.circle.fill")
                     .resizable()

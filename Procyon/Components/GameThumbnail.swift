@@ -9,11 +9,13 @@ import SwiftUI
 import Kingfisher
 
 struct GameThumbnail: View {
-    let item: SteamGame
+    let item: Game
     @EnvironmentObject var appGlobals: AppGlobals
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     
     var body: some View {
+        let isNative = getMeta(libraryPageGlobals.gamesMeta, byID: String(item.id))?.isNative ?? false
+        
         Button(action: {
             libraryPageGlobals.showDetailView =  true
             libraryPageGlobals.selectedGame = item
@@ -26,16 +28,13 @@ struct GameThumbnail: View {
                         }
                         .resizable()
                         .scaledToFit()
-                    if (libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.id) })?.isNative ?? false) {
-                        Image("os-apple")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)              // icon size
+                    if (isNative == true) {
+                        Image(systemName: "apple.logo")            // icon size
                             .padding(8)                                // space inside the circle
                             .background(Color.black.opacity(0.5))     // semi-transparent black
                             .clipShape(Circle())                       // make it circular
                             .foregroundStyle(.white)                   // icon color
-                            .padding(8)
+                            .padding()
                     }
                 }
                 VStack (alignment: .leading, spacing: 6) {
@@ -54,17 +53,17 @@ struct GameThumbnail: View {
 
                             Task {
                                 do {
-                                    let gameOptKey = namespacedKey("GameOptions", String(item.id))
+                                    let gameOptKey = namespacedKey("GameOptions", String(item.steamAppID))
                                     let gameOptions: GameOptions = GameOptions()
                                     if let gameOptionsData: GameOptionsData = readUsrDefData(key: gameOptKey) {
                                         let gameOptions: GameOptions = GameOptions()
                                         gameOptions.set(data: gameOptionsData)
                                     }
-                                    let isNative = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.id) })?.isNative ?? false
+                                    let isNative = libraryPageGlobals.gamesMeta.first(where: { $0.appid == String(item.steamAppID) })?.isNative ?? false
                                     if(isNative) {
-                                        try await launchNativeGame(id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                        try await launchNativeGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                                     } else {
-                                        try await launchWindowsGame(id: String(item.id), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
+                                        try await launchWindowsGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle!, options: gameOptions)
                                     }
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                                         libraryPageGlobals.setLoader(state: false)
@@ -92,6 +91,6 @@ struct GameThumbnail: View {
 
 #Preview {
     @Previewable @State var showDetailView: Bool = false
-    @Previewable @State var selectedGame: SteamGame? = nil
-    GameThumbnail(item: SteamGame.mock)
+    @Previewable @State var selectedGame: Game? = nil
+    GameThumbnail(item: .mock)
 }

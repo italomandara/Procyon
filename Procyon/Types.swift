@@ -9,10 +9,11 @@ import Foundation
 
 class GamesMeta: SteamACFMeta {
     var gameURL: URL?
-    var libraryFolder: URL?
+    var libraryFolder: URL
     var isNative: Bool
+    var id: String { libraryFolder.relativeString + appid }
     
-    init(appid: String, installdir: String, gameURL: URL? = nil, isNative: Bool = false, libraryFolder: URL? = nil) {
+    init(appid: String, installdir: String, gameURL: URL? = nil, isNative: Bool = false, libraryFolder: URL = URL(string: "/")!) {
         self.gameURL = gameURL
         self.isNative = isNative
         self.libraryFolder = libraryFolder

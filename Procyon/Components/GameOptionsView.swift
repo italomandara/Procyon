@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GameOptionsView: View {
-    @Binding var game: SteamGame?
+    @Binding var game: Game?
     @EnvironmentObject var gameOptions: GameOptions
     
     var preferredMaxFrameRate: String {
@@ -16,9 +16,9 @@ struct GameOptionsView: View {
     }
     
     var body: some View {
-        let gameOptKey = namespacedKey("GameOptions", String(game!.id))
+        let gameOptKey = namespacedKey("GameOptions", String(game!.steamAppID))
         VStack (alignment: .leading, spacing: 5){
-            Text("Options for \(game!.name) id:\(game!.id)").font(Font.footnote).foregroundStyle(.procyonBrightGray)
+            Text("Options for \(game!.name) id:\(game!.steamAppID)").font(Font.footnote).foregroundStyle(.procyonBrightGray)
             Form {
                 VStack(alignment: .leading, spacing: 20) {
                     Section("Generic options") {
@@ -110,7 +110,7 @@ struct GameOptionsView: View {
 }
 
 #Preview {
-    @State @Previewable var game: SteamGame? = .mock
+    @State @Previewable var game: Game? = .mock
     @StateObject @Previewable var gameOptions: GameOptions = GameOptions(cxGraphicsBackend: "dxmt")
     
     GameOptionsView(game: $game).environmentObject(gameOptions)

@@ -20,12 +20,12 @@ class LibraryPageGlobals: ObservableObject {
     @Published var showOptions: Bool = false
     @Published var filter: String = ""
     @Published var showDetailView = false
-    @Published var selectedGame: SteamGame? = nil
+    @Published var selectedGame: Game? = nil
     @Published var isLaunchingGame: Bool = false
-    @Published var games: [SteamGame] = []
+    @Published var games: [Game] = []
     @Published var sortBy: SortingOptions = SortingOptions.name
     
-    var filteredGames: [SteamGame] {
+    var filteredGames: [Game] {
         self.games.filter { item in
             self.filter.isEmpty ||
             item.name.lowercased().contains(self.filter.lowercased())
@@ -183,7 +183,7 @@ struct LibraryPage: View {
         }
         
         do {
-            libraryPageGlobals.games = try await api.fetchGamesInfo(appIDs: libraryPageGlobals.gamesMeta.map(\.appid), setProgress: { self.progress = $0 })
+            libraryPageGlobals.games = try await api.fetchGamesInfo(meta: libraryPageGlobals.gamesMeta, setProgress: { self.progress = $0 })
 //            Task {
 //                while progress <= 100 {
 //                    try await Task.sleep(nanoseconds: 100_000_000)
