@@ -34,7 +34,7 @@ final class SteamAPI {
     var hasCache: Bool = false
     var progress: Double = 0
     private var cacheBlacklist: [String] = blacklist
-    private var cache: [String: [SteamGame]] = [:]
+    private var cache: [String: SteamGame] = [:]
     private var cacheIDS: [String] {
         if cache.count < 1 {
             return []
@@ -49,7 +49,7 @@ final class SteamAPI {
     private func loadCache() {
         do {
             let data = try Data(contentsOf: cacheURL)
-            let decoded = try JSONDecoder().decode([String: [SteamGame]].self, from: data)
+            let decoded = try JSONDecoder().decode([String: SteamGame].self, from: data)
             self.cache = decoded
             self.hasCache = true
             console.warn("Cache loaded")
@@ -79,7 +79,7 @@ final class SteamAPI {
         self.hasCache = true
         console.warn("Cache deleted")
     }
-    func fetchGameInfo(appID: String) async throws -> [SteamGame]? {
+    func fetchGameInfo(appID: String) async throws -> SteamGame? {
         if self.cacheBlacklist.contains(appID) {
             return nil
         }
@@ -100,9 +100,9 @@ final class SteamAPI {
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
             
 //            console.warn("Decoded \(root.data.count) items for game \(appID)")
-            cache[appID] = root.data
+            cache[appID] = root.data[0]
             saveCache()
-            return root.data
+            return root.data[0]
         }
     }
     func fetchGamesInfo(appIDs: [String], setProgress: @escaping (Double) -> Void = { _ in }) async throws -> [SteamGame] {
@@ -115,7 +115,7 @@ final class SteamAPI {
         for (index, appID) in appIDs.enumerated() {
             do {
                 if let gameInfo = try await self.fetchGameInfo(appID: appID) {
-                    items.append(contentsOf: gameInfo)
+                    items.append(gameInfo)
                 }
             } catch {
                 console.warn(error.localizedDescription)
@@ -154,10 +154,10 @@ final class SteamAPI {
         
         if(uncached.count < 1) {
             console.warn("returning cached")
-            return cached.map { $0.value[0] }
+            return cached.map { $0.value }
         }
         
-        items.append(contentsOf: cached.map { $0.value[0] }) // start to populate with all cached games
+        items.append(contentsOf: cached.map { $0.value }) // start to populate with all cached games
         console.log("populating with cached data items: \(cached.count)")
         
         let urlString = "\(baseAPIMURL)?appids=\(uncached.joined(separator: ","))" //just request uncached ids
@@ -170,7 +170,7 @@ final class SteamAPI {
                 .value
             let root = try JSONDecoder().decode(SteamGameResponse.self, from: data)
             items.append(contentsOf: root.data) // append the remaining reqested from the api
-            root.data.forEach { cache[String($0.id)] = [$0] } //cache the new games that were fetched
+            root.data.forEach { cache[String($0.id)] = $0 } //cache the new games that were fetched
             console.log("caching new items: \(root.data.count)")
             saveCache()
             setProgress(100)
