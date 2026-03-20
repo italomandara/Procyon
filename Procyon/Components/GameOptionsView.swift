@@ -10,6 +10,7 @@ import SwiftUI
 struct GameOptionsView: View {
     @Binding var game: Game?
     @EnvironmentObject var gameOptions: GameOptions
+    @EnvironmentObject var appGlobals: AppGlobals
     
     var preferredMaxFrameRate: String {
         $gameOptions.dxmtPreferredMaxFrameRate.wrappedValue < 20.0 ? "Disabled" : "\($gameOptions.dxmtPreferredMaxFrameRate.wrappedValue)"
@@ -90,6 +91,23 @@ struct GameOptionsView: View {
                             }
                         }
                     }
+                    if(!game!.isNative) {
+                        Divider()
+                        Section("Resolution (Virtual Desktop)") {
+                            Toggle("Enable Virtual Desktop", isOn: $gameOptions.virtualDesktopEnabled)
+                            if(gameOptions.virtualDesktopEnabled) {
+                                TextField("Resolution (e.g. 1920x1080)", text: $gameOptions.virtualDesktopResolution)
+                                HStack {
+                                    ForEach(BottleResolutionManager.detectDisplayProfiles(), id: \.id) { profile in
+                                        Button("\(profile.name) (\(profile.resolution))") {
+                                            gameOptions.virtualDesktopResolution = profile.resolution
+                                        }
+                                        .buttonStyle(.bordered)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     HStack {
                         Button("Save settings") {
                             console.log("saving")
@@ -118,14 +136,31 @@ struct GameOptionsView: View {
             if let data: GameOptionsData = readUsrDefData(key: gameOptKey) {
                 self.gameOptions.set(data: data)
             }
+            if(!game!.isNative) {
+                loadResolutionFromBottle()
+            }
         }
     }
+
+    private func loadResolutionFromBottle() {
+        guard !appGlobals.selectedBottle.isEmpty,
+              let bottleURL = URL(string: appGlobals.selectedBottle) else { return }
+        let manager = BottleResolutionManager(bottleURL: bottleURL)
+        do {
+            let state = try manager.loadCurrentState()
+            gameOptions.virtualDesktopEnabled = state.isVirtualDesktopEnabled
+            gameOptions.virtualDesktopResolution = state.resolution
+        } catch {
+            console.error("Failed to load resolution state: \(String(reflecting: error))")
+        }
+    }
+
 }
 
 #Preview {
     @State @Previewable var game: Game? = .mock
     @StateObject @Previewable var gameOptions: GameOptions = GameOptions(cxGraphicsBackend: "dxmt")
-    
-    GameOptionsView(game: $game).environmentObject(gameOptions)
+    @StateObject @Previewable var appGlobals: AppGlobals = AppGlobals()
 
+    GameOptionsView(game: $game).environmentObject(gameOptions).environmentObject(appGlobals)
 }

@@ -116,6 +116,23 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
         console.error("Missing game options for game with id \(id) - cannot launch (options = nil)")
         return
     }
+
+    // Apply per-game resolution to user.reg (read on next Wine boot)
+    if let bottleURL = URL(string: selectedBottle) {
+        let resManager = BottleResolutionManager(bottleURL: bottleURL)
+        let currentState = try resManager.loadCurrentState()
+        let wantEnabled = options!.virtualDesktopEnabled
+        let wantResolution = options!.virtualDesktopResolution
+
+        let needsChange = currentState.isVirtualDesktopEnabled != wantEnabled ||
+            (wantEnabled && currentState.resolution != wantResolution)
+
+        if needsChange {
+            let resolution = wantEnabled ? wantResolution : nil
+            try resManager.applyResolution(resolution)
+        }
+    }
+
     let f = FileManager.default
 
     var command = ""

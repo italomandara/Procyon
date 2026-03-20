@@ -36,7 +36,9 @@ struct GameOptionsData: Codable { // this is used for reading saved properties
     var envVariables: String
     var sdlEnabled: Bool
     var hidrawDisabled: Bool
-    
+    var virtualDesktopEnabled: Bool
+    var virtualDesktopResolution: String
+
     init(data: GameOptions) {
         self.cxGraphicsBackend = data.cxGraphicsBackend
         self.wineMSync = data.wineMSync
@@ -51,6 +53,8 @@ struct GameOptionsData: Codable { // this is used for reading saved properties
         self.envVariables = data.envVariables
         self.sdlEnabled = data.enableSDL
         self.hidrawDisabled = data.disableHidraw
+        self.virtualDesktopEnabled = data.virtualDesktopEnabled
+        self.virtualDesktopResolution = data.virtualDesktopResolution
     }
 }
 
@@ -72,8 +76,10 @@ class GameOptions: ObservableObject { // this is used as form state
     @Published var envVariables: String
     @Published var enableSDL: Bool
     @Published var disableHidraw: Bool
-    
-    init(cxGraphicsBackend: String = "d3dmetal", wineMSync: Bool = true, mtlHudEnabled: Bool = false, x87PatchEnabled: Bool = false, dx9PatchEnabled: Bool = false, dxvk: String? = nil, wineEsync: String? = nil, d3dMEnableMetalFX: String? = nil, d3dSupportDXR: String? = nil, gameArguments: String = "", dxmtPreferredMaxFrameRate: Double = 0, dxmtMetalFXSpatial: Bool = false, dxmtMetalSpatialUpscaleFactor: Double = 1.0, advertiseAVX: Bool = true, envVariables: String = "", sdlEnabled: Bool = true, hidrawDisabled: Bool = false) {
+    @Published var virtualDesktopEnabled: Bool
+    @Published var virtualDesktopResolution: String
+
+    init(cxGraphicsBackend: String = "d3dmetal", wineMSync: Bool = true, mtlHudEnabled: Bool = false, x87PatchEnabled: Bool = false, dx9PatchEnabled: Bool = false, dxvk: String? = nil, wineEsync: String? = nil, d3dMEnableMetalFX: String? = nil, d3dSupportDXR: String? = nil, gameArguments: String = "", dxmtPreferredMaxFrameRate: Double = 0, dxmtMetalFXSpatial: Bool = false, dxmtMetalSpatialUpscaleFactor: Double = 1.0, advertiseAVX: Bool = true, envVariables: String = "", sdlEnabled: Bool = true, hidrawDisabled: Bool = false, virtualDesktopEnabled: Bool = false, virtualDesktopResolution: String = "1920x1080") {
         self.cxGraphicsBackend = cxGraphicsBackend
         self.wineMSync = wineMSync
         self.mtlHudEnabled = mtlHudEnabled
@@ -91,6 +97,8 @@ class GameOptions: ObservableObject { // this is used as form state
         self.envVariables = envVariables
         self.enableSDL = sdlEnabled
         self.disableHidraw = hidrawDisabled
+        self.virtualDesktopEnabled = virtualDesktopEnabled
+        self.virtualDesktopResolution = virtualDesktopResolution
     }
     func set(data: GameOptionsData) {
         self.cxGraphicsBackend = data.cxGraphicsBackend
@@ -106,6 +114,8 @@ class GameOptions: ObservableObject { // this is used as form state
         self.envVariables = data.envVariables
         self.enableSDL = data.sdlEnabled
         self.disableHidraw = data.hidrawDisabled
+        self.virtualDesktopEnabled = data.virtualDesktopEnabled
+        self.virtualDesktopResolution = data.virtualDesktopResolution
     }
 }
 
