@@ -20,10 +20,11 @@ struct ProcyonToolbar: View {
             } label: {
                 Image(systemName: "rectangle.badge.plus").resizable().scaledToFit().frame(width: iconSize, height: iconSize)
             }
-            if appGlobals.cxAppPath != nil {
+            if !appGlobals.cxAppPath.isEmpty {
                 Divider()
                 Button {
-                    if let cxPath = appGlobals.cxAppPath {
+                    let cxPath = appGlobals.cxAppPath
+                    if !cxPath.isEmpty {
                         let url = URL(fileURLWithPath: cxPath)
                         let configuration = NSWorkspace.OpenConfiguration()
                         configuration.environment = [
@@ -39,13 +40,13 @@ struct ProcyonToolbar: View {
             if appGlobals.selectedBottle != "" {
                 Divider()
                 Button {
-                    openSteam(cxAppPath: appGlobals.cxAppPath, selectedBottle: appGlobals.selectedBottle)
+                    openSteam(cxAppPath: appGlobals.cxAppPath, selectedBottle: appGlobals.selectedBottle, steamWinePath: appGlobals.steamWinePath)
                 } label: {
                     Image("steam-fill").resizable().scaledToFit().frame(width: iconSize, height: iconSize)
                 }
                 Divider()
                 Button {
-                    if let selectedBottleURL = URL(string: appGlobals.selectedBottle){
+                    if let selectedBottleURL = URL(string: appGlobals.selectedBottle) {
                         showFolder(url: selectedBottleURL)
                     }
                 } label: {

@@ -24,10 +24,7 @@ final class Router: ObservableObject {
 
 struct ContentView: View {
     @StateObject var router = Router()
-    @StateObject var appGlobals = AppGlobals(
-        selectedBottle: readUsrDefOptionString(key: "selectedBottle"),
-        cxAppPath: readUsrDefOptionString(key: "cxAppPath"),
-    )
+    @StateObject var appGlobals = AppGlobals()
     
     var body: some View {
         Group {
@@ -55,8 +52,8 @@ struct ContentView: View {
             }
         )
         .onAppear() {
-            if(appGlobals.selectedBottle != ""){
-                appGlobals.userID = getSteamUserID(usingBottlePath: URL(string: appGlobals.selectedBottle)!)
+            if(!appGlobals.selectedBottle.isEmpty){
+                appGlobals.userID = getSteamUserID(usingBottlePath: URL(string: appGlobals.selectedBottle)!, steamWinePath:appGlobals.steamWinePath) ?? ""
             }
         }
     }

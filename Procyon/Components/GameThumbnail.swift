@@ -140,7 +140,7 @@ struct GameThumbnail: View {
                     console.warn("failed to retrieve game options")
                 }
                 Task(priority: .background) {
-                    tObserver = try await getGameTracker(appNames: updatedItem.appNames, cxAppPath: appGlobals.cxAppPath!, bottleName: appGlobals.selectedBottle, onLoad: {
+                    tObserver = try await getGameTracker(appNames: updatedItem.appNames, cxAppPath: appGlobals.cxAppPath, bottleName: appGlobals.selectedBottle, onLoad: {
                         libraryPageGlobals.playingID = item.id
                         DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                             libraryPageGlobals.setLoader(state: false)
@@ -152,14 +152,14 @@ struct GameThumbnail: View {
                     }, isNative: item.isNative)
                 }
                 if(item.isNative) {
-                    try await launchNativeGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: item.appExeURL)
+                    try await launchNativeGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath, selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: item.appExeURL)
                 } else {
                     if(item.isCustom == true && item.appExeURL == nil) {
                         console.error("custom game doesn't have an executable associated")
                         libraryPageGlobals.setLoader(state: false)
                         return
                     }
-                    try await launchWindowsGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: item.appExeURL)
+                    try await launchWindowsGame(id: String(item.steamAppID), cxAppPath: appGlobals.cxAppPath, selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: item.appExeURL, steamWinePath: appGlobals.steamWinePath)
                 }
             } catch {
                 console.error(String(reflecting: error))

@@ -598,13 +598,50 @@ class LibraryPageGlobals: ObservableObject {
 }
 
 final class AppGlobals: ObservableObject {
-    @Published var selectedBottle: String = ""
-    @Published var userID: String? = nil
-    @Published var cxAppPath: String?
-    
-    init(selectedBottle: String? = "", cxAppPath: String? = nil) {
-        self.selectedBottle = readUsrDefOptionString(key: "selectedBottle") ?? ""
-        self.cxAppPath = readUsrDefOptionString(key: "cxAppPath")
+
+    var selectedBottle: String = "" {
+        willSet { objectWillChange.send() }
+        didSet { persistUsrDefOptionString(key: "selectedBottle", value: selectedBottle) }
+    }
+
+    var userID: String = "" {
+        willSet { objectWillChange.send() }
+        didSet { persistUsrDefOptionString(key: "userID", value: userID) }
+    }
+
+    var cxAppPath: String = "" {
+        willSet { objectWillChange.send() }
+        didSet { persistUsrDefOptionString(key: "cxAppPath", value: cxAppPath) }
+    }
+
+    var steamWinePath: String = "" {
+        willSet { objectWillChange.send() }
+        didSet { persistUsrDefOptionString(key: "steamWinePath", value: steamWinePath) }
+    }
+
+    init(selectedBottle: String? = nil, cxAppPath: String? = nil, steamWinePath: String? = nil) {
+        // Initialise properties with provided values or fallback to persisted user defaults, or sensible defaults
+        if !isNilOrBlank(checkString: selectedBottle) {
+            self.selectedBottle = selectedBottle!
+        } else {
+            self.selectedBottle = readUsrDefOptionString(key: "selectedBottle")
+        }
+        
+        if (!isNilOrBlank(checkString: cxAppPath)) {
+            self.cxAppPath = cxAppPath!
+        } else {
+            self.cxAppPath = readUsrDefOptionString(key: "cxAppPath")
+        }
+        
+        if (!isNilOrBlank(checkString: steamWinePath)) {
+            self.steamWinePath = steamWinePath!
+        } else {
+            self.steamWinePath = readUsrDefOptionString(key: "steamWinePath",
+                                                        defaultValue: "drive_c/Program Files (x86)/Steam/config/")
+        }
     }
 }
 
+func isNilOrBlank(checkString: String?) -> Bool {
+    return checkString == nil || checkString!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty;
+}

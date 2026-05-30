@@ -99,8 +99,9 @@ func persistUsrDefOptionString(key: String, value: String) {
     groupDefaults.set(value, forKey: key)
 }
 
-func readUsrDefOptionString(key: String) -> String? {
-    return UserDefaults(suiteName: suiteName)!.value(forKey: key) as? String
+func readUsrDefOptionString(key: String, defaultValue: String = "") -> String {
+    let value = UserDefaults(suiteName: suiteName)!.value(forKey: key) as? String
+    return value?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? value! : defaultValue
 }
 
 func deleteUsrDefOptionStartsWith(prefix: String) {

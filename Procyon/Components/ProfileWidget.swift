@@ -38,7 +38,7 @@ struct ProfileWidget: View {
                 .buttonStyle(.plain)
             } else {
                 if let bottlePath = URL(string: appGlobals.selectedBottle) {
-                    if let fallbackProfileData = getSteamUserDataFallback(usingBottlePath: bottlePath) {
+                    if let fallbackProfileData = getSteamUserDataFallback(usingBottlePath: bottlePath, steamWinePath: appGlobals.steamWinePath) {
                         HStack {
                             KFImage(URL(string: fallbackProfileData.avatar))
                                 .resizable()
@@ -140,10 +140,15 @@ struct ProfileWidget: View {
             isLoading = false
         }
         do {
-            if(appGlobals.userID != nil){
-                profileData = try await api.fetchProfileDetails(userID: appGlobals.userID!)
+            if(!appGlobals.userID.isEmpty){
+                profileData = try await api.fetchProfileDetails(userID: appGlobals.userID)
             } else {
-                console.error("Couldn't find the userID")
+                appGlobals.userID = getSteamUserID(usingBottlePath: URL(string: appGlobals.selectedBottle)!, steamWinePath: appGlobals.steamWinePath) ?? ""
+                if(!appGlobals.userID.isEmpty){
+                    profileData = try await api.fetchProfileDetails(userID: appGlobals.userID)
+                } else {
+                    console.error("Couldn't find the userID")
+                }
             }
         } catch {
             console.error(String(reflecting: error))

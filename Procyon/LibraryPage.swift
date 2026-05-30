@@ -169,9 +169,9 @@ struct LibraryPage: View {
             }
         }
         do {
-            if(appGlobals.userID != nil) {
+            if(!appGlobals.userID.isEmpty) {
                 let ownedMeta = try await api
-                    .fetchOwnedGamesIDs(userID: appGlobals.userID!)
+                    .fetchOwnedGamesIDs(userID: appGlobals.userID)
                     .map{
                         GamesMeta(appid: $0, installdir: "", bytesDownloaded: "0", BytesTodownload: "0")
                     }

@@ -148,10 +148,11 @@ func safeShellWithOutput(_ command: String) throws -> String {
 }
 
 let DEFAULT_STEAM_MAC_PATH = "/Library/Application Support/Steam/config/"
-let DEFAULT_STEAM_WINE_PATH = "/drive_c/Program Files (x86)/Steam/config/"
 
-func getSteamUserID (usingBottlePath: URL) -> String? {
-    let steamLoginUsersPath = usingBottlePath.appendingPathComponent(DEFAULT_STEAM_WINE_PATH)
+
+func getSteamUserID (usingBottlePath: URL, steamWinePath:String) -> String? {
+    let steamLoginUsersPath = usingBottlePath.appendingPathComponent(steamWinePath)
+        .appendingPathComponent("config")
         .appendingPathComponent("loginusers.vdf")
     guard let steamSettingsFile = try? String(contentsOfFile: steamLoginUsersPath.path(percentEncoded: false), encoding: .utf8) else { return nil }
     let parsed = parseVDFToDict(from: steamSettingsFile)
@@ -159,17 +160,23 @@ func getSteamUserID (usingBottlePath: URL) -> String? {
     return users?.keys.first?.description
 }
 
-func getSteamUserDataFallback (usingBottlePath: URL) -> UserInfo? {
-    let steamLoginUsersPath = usingBottlePath.appendingPathComponent(DEFAULT_STEAM_WINE_PATH)
+func getSteamUserDataFallback (usingBottlePath: URL, steamWinePath: String) -> UserInfo? {
+    let steamLoginUsersPath = usingBottlePath.appendingPathComponent(steamWinePath)
+        .appendingPathComponent("config")
         .appendingPathComponent("loginusers.vdf")
     guard let steamSettingsFile = try? String(contentsOfFile: steamLoginUsersPath.path(percentEncoded: false), encoding: .utf8) else { return nil }
     let parsed = parseVDFToDict(from: steamSettingsFile)
     let users = parsed["users"] as? [String: Any]
     if let key = users?.keys.first {
+        var personaName = ""
+        
         let user = users![key] as? [String: Any]
-        let personaName = user?["PersonaName"] as? String ?? ""
+        if let user {
+            personaName = (user["PersonaName"] as? String) ?? ""
+        }
         let avatar = usingBottlePath
-            .appendingPathComponent(DEFAULT_STEAM_WINE_PATH)
+            .appendingPathComponent(steamWinePath)
+            .appendingPathComponent("config")
             .appendingPathComponent("avatarcache")
             .appendingPathComponent(key)
             .appendingPathExtension("png")
@@ -197,13 +204,14 @@ func getSteamUserDataFallback (usingBottlePath: URL) -> UserInfo? {
     return nil
 }
 
-func getSteamLibraryFolders(from: URL) -> [URL] {
+func getSteamLibraryFolders(from: URL, appGlobals : AppGlobals) -> [URL] {
     let f = FileManager.default
     var steamLibraries: [URL] = []
     let drives = getBottleDrives(bottleURL: from)
     console.log("drives: \(String(describing: drives))")
     let steamSettingsPaths = [
-        from.appendingPathComponent(DEFAULT_STEAM_WINE_PATH)
+        from.appendingPathComponent(appGlobals.steamWinePath)
+            .appendingPathComponent("config")
             .appendingPathComponent("libraryfolders.vdf"),
         f.homeDirectoryForCurrentUser
             .appendingPathComponent(DEFAULT_STEAM_MAC_PATH)
@@ -419,7 +427,8 @@ class TarDownloader: NSObject, URLSessionDownloadDelegate {
     func download() {
         let f = FileManager.default
         console.log(self.fromUrl.debugDescription)
-        if let lastDownloadedPath = readUsrDefOptionString(key: namespacedKey("downloads", self.fromUrl.lastPathComponent)){
+        let lastDownloadedPath = readUsrDefOptionString(key: namespacedKey("downloads", self.fromUrl.lastPathComponent))
+        if !lastDownloadedPath.isEmpty {
             if lastDownloadedPath == self.fromUrl.path(percentEncoded: false) {
                 console.log("download cache found, skipping download")
                 return self.onComplete(self.downloadDir)

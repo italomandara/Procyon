@@ -121,7 +121,7 @@ struct GameHeader: View {
         Task {
             do {
                 Task(priority: .background) {
-                    tObserver = try await getGameTracker(appNames: game!.appNames, cxAppPath: appGlobals.cxAppPath!, bottleName: appGlobals.selectedBottle, onLoad: {
+                    tObserver = try await getGameTracker(appNames: game!.appNames, cxAppPath: appGlobals.cxAppPath, bottleName: appGlobals.selectedBottle, onLoad: {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                             libraryPageGlobals.setLoader(state: false)
                         }
@@ -133,14 +133,14 @@ struct GameHeader: View {
                     }, isNative: game!.isNative)
                 }
                 if(game!.isNative) {
-                    try await launchNativeGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: game!.appExeURL)
+                    try await launchNativeGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath, selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: game!.appExeURL)
                 } else {
                     if(game!.isCustom == true && game!.appExeURL == nil) {
                         console.error("custom game doesn't have an executable associated")
                         libraryPageGlobals.setLoader(state: false)
                         return
                     }
-                    try await launchWindowsGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath ?? "", selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: game!.appExeURL)
+                    try await launchWindowsGame(id: String(game!.steamAppID), cxAppPath: appGlobals.cxAppPath, selectedBottle: appGlobals.selectedBottle, options: gameOptions, appExeURL: game!.appExeURL, steamWinePath: appGlobals.steamWinePath)
                 }
             } catch {
                 libraryPageGlobals.setLoader(state: false)

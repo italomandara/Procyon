@@ -114,12 +114,25 @@ func quitWine(cxAppPath: String, bottleName: String) async throws -> Void {
     try safeShell("\(cxAppPath)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) wineserver -k")
 }
 
-func openSteam(cxAppPath: String?, selectedBottle: String?) {
+func normalizeSteamPath(path: String) -> String {
+    var normalizedPath = path + "/steam.exe"
+    if normalizedPath.lowercased().hasPrefix("drive_c/") {
+        let remainder = normalizedPath.dropFirst("drive_c/".count)
+        normalizedPath = "C:/" + remainder
+    }
+    return normalizedPath.replacingOccurrences(of: "/", with: "\\")
+}
+
+func openSteam(cxAppPath: String?, selectedBottle: String?, steamWinePath: String) {
     if cxAppPath == nil || selectedBottle == nil {
+        console.error(String(reflecting: "CXAppPath or selectedBottle is nil"))
         return
     }
+    console.log("Launching Steam with \(cxAppPath!) \(selectedBottle!) \(steamWinePath) ...")
     if let bottleName = URL(string: selectedBottle!)?.lastPathComponent {
-        let steamLaunchCommand = "MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0 CX_GRAPHICS_BACKEND=\"\(CXGraphicsBackend.d3dmetal.rawValue)\" \(cxAppPath!)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \"C:\\Program Files (x86)\\Steam\\Steam.exe\""
+        let normalizedPath = normalizeSteamPath(path: steamWinePath)
+        let wineSteamPathArg = "\"" + normalizedPath.replacingOccurrences(of: "/", with: "\\") + "\""
+        let steamLaunchCommand = "MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0 CX_GRAPHICS_BACKEND=\"\(CXGraphicsBackend.d3dmetal.rawValue)\" \(cxAppPath!)/Contents/SharedSupport/CrossOver/bin/wine --bottle \(bottleName) \(wineSteamPathArg)"
         do {
             try safeShell(steamLaunchCommand)
             console.log(steamLaunchCommand)
@@ -155,11 +168,11 @@ func copyMoltenVK(cxAppPath: String, vulkanLibID: String) throws -> Void {
     }
 }
 
-func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil, appExeURL: URL? = nil) async throws -> Void {
     console.log("options: \(options.debugDescription)")
     if let vulkanLibID = options?.vulkanLib {
         try copyMoltenVK(cxAppPath: cxAppPath, vulkanLibID: vulkanLibID)
     }
+func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil, appExeURL: URL? = nil, steamWinePath: String) async throws -> Void {
     guard let bottleURL = URL(string: selectedBottle) else {
         console.error("Invalid bottle URL: \(selectedBottle)")
         return
@@ -202,8 +215,10 @@ func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, op
     let wineEnvs = "CX_ROOT=\"\(options!.x87PatchEnabled ? x87cxAppURL.path() : cxAppPath)/Contents/SharedSupport/CrossOver\" WINEPREFIX=\"\(URL(string: selectedBottle)?.path ?? "")\" WINEDEBUG=-all WINEMSYNC=\(options!.wineMSync ? "1" : "0")"
     
 //    try cpyd8d9DLLs(to: bottleURL, enable: options!.dx9PatchEnabled)
+    let normalizedPath = normalizeSteamPath(path: steamWinePath)
+    let wineSteamPathArg = "\"" + normalizedPath.replacingOccurrences(of: "/", with: "\\") + "\" \(steamBootOptions) -applaunch \(String(id))"
     
-    let gameLaunchCommand = appExeURL != nil ? "\"\(appExeURL!.path(percentEncoded: false))\"" : "\"C:\\Program Files (x86)\\Steam\\Steam.exe\" \(steamBootOptions) -applaunch \(String(id))"
+    let gameLaunchCommand = appExeURL != nil ? "\"\(appExeURL!.path(percentEncoded: false))\"" : wineSteamPathArg
     if (options!.x87PatchEnabled) {
         if(!f.fileExists(atPath: x87cxAppURL.path())) {
             console.error("Couldn't find \(x87cxAppURL.path())")
@@ -239,3 +254,4 @@ func installGame(id: String) {
 //    steamcmd +login YOUR_USERNAME +app_update 1489410 validate +quit
 //    steamcmd +login USER +force_install_dir "C:\Program Files (x86)\Steam\steamapps\common\MyGame" +app_update 1489410 validate +quit
 }
+
