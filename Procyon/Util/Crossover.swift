@@ -30,20 +30,25 @@ func getCXPatcherBottlesURL(appDir: URL)  throws -> URL {
     let base = f.homeDirectoryForCurrentUser
     
     let confPath: URL = appDir.appendingPathComponent("/Contents/SharedSupport/CrossOver/etc/CrossOver.conf")
-    let confFile = try String(contentsOf: confPath, encoding: .utf8)
-    for line in confFile.components(separatedBy: "\n") {
-        let (key, value) = parseCXEnvVarString(String(line))
-        if key == "CX_BOTTLE_PATH" {
-            if(value.contains("/Users/${USER}/")) {
-                let path = value.split(separator: "/").last?.description ?? ""
-                return base.appendingPathComponent(path, isDirectory: true)
-            } else {
-                return URL(filePath: value)
-            }
+    console.log("Loading CrossOver configurationf from \(confPath.path) ...")
+    let envSection = getConfigSection(fileURL: confPath, section: "EnvironmentVariables")
+    console.log("Finding CX_BOTTLE_PATH in configuration ...")
+    let cxBottlePath = envSection["CX_BOTTLE_PATH"]
+    if let cxBottlePath {
+        console.log("Found CX_BOTTLE_PATH in configuration: \(cxBottlePath)")
+
+        if cxBottlePath.hasPrefix("/Users/${USER}/") {
+            console.log("Found user based path, transforming to local user path ...")
+            let components = cxBottlePath.split(separator: "/").dropFirst(2) // ["Users", "${USER}", "..."]
+            let path = components.joined(separator: "/")
+            return base.appendingPathComponent(path, isDirectory: true)
+        } else {
+            return URL(filePath: cxBottlePath)
         }
     }
+    
     // fallback if it doesn't find it in the config file (just in case)
-    console.warn("Couldn't find CXPatcher bottles configuration")
+    console.warn("Couldn't find CXPatcher bottles configuration: " + confPath.absoluteString)
     let bottlePathForCXP: URL = PROCYON_SUPPORT_FOLDER_URL.appendingPathComponent(DEFAULT_CXP_BOTTLES_FOLDER, isDirectory: true)
     return bottlePathForCXP
 }

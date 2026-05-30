@@ -168,7 +168,12 @@ func getSteamUserDataFallback (usingBottlePath: URL) -> UserInfo? {
     if let key = users?.keys.first {
         let user = users![key] as? [String: Any]
         let personaName = user?["PersonaName"] as? String ?? ""
-        let avatar = usingBottlePath.appendingPathComponent("/drive_c/Program Files (x86)/Steam/config/avatarcache/").appendingPathComponent(key).appendingPathExtension("png").absoluteString
+        let avatar = usingBottlePath
+            .appendingPathComponent(DEFAULT_STEAM_WINE_PATH)
+            .appendingPathComponent("avatarcache")
+            .appendingPathComponent(key)
+            .appendingPathExtension("png")
+            .absoluteString
         let fallbackProfileData = UserInfo(
             steamID: "",
             communityVisibilityState: 0,
