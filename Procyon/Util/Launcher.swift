@@ -168,11 +168,12 @@ func copyMoltenVK(cxAppPath: String, vulkanLibID: String) throws -> Void {
     }
 }
 
+func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil, appExeURL: URL? = nil, steamWinePath: String) async throws -> Void {
     console.log("options: \(options.debugDescription)")
     if let vulkanLibID = options?.vulkanLib {
         try copyMoltenVK(cxAppPath: cxAppPath, vulkanLibID: vulkanLibID)
     }
-func launchWindowsGame(id: String, cxAppPath: String, selectedBottle: String, options: GameOptions? = nil, appExeURL: URL? = nil, steamWinePath: String) async throws -> Void {
+
     guard let bottleURL = URL(string: selectedBottle) else {
         console.error("Invalid bottle URL: \(selectedBottle)")
         return

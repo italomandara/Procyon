@@ -20,7 +20,7 @@ struct OptionsView: View {
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @MainActor var load: @Sendable () async -> Void
     @State var createBtlPrc: Process?
-    @State private var showError = false
+    @State private var showSteamPathError: Bool = false
 
     // MARK: - Derived state
 
@@ -167,14 +167,18 @@ struct OptionsView: View {
                 steamLibrariesURLs.forEach { url in
                     validateAddSteamFolder(url, to: &libraryPageGlobals.folders)
                 }
-                let tempSteamWinePath = URL(string: newValue)!
-                    .appendingPathComponent(appGlobals.steamWinePath).absoluteString
-                
-                do {
-                    _ = try FileManager.default.contentsOfDirectory(atPath: tempSteamWinePath)
-                } catch {
-                    console.warn("Steam (Wine) path doesn't exist in the selected bottle. Resetting to default.")
-                    appGlobals.steamWinePath = ""
+                let steamDir = URL(string: newValue)!
+                    .appendingPathComponent(appGlobals.steamWinePath)
+                if !appGlobals.steamWinePath.isEmpty {
+                    var isDirectory: ObjCBool = false
+                    let exists = FileManager.default.fileExists(
+                        atPath: steamDir.path(percentEncoded: false),
+                        isDirectory: &isDirectory
+                    )
+                    if !exists || !isDirectory.boolValue {
+                        console.warn("Steam (Wine) path doesn't exist in the selected bottle. Resetting to default.")
+                        appGlobals.steamWinePath = ""
+                    }
                 }
                 Task { await load() }
             }
@@ -237,20 +241,20 @@ struct OptionsView: View {
         Divider().padding(.top, 10)
         Text("Steam (Wine) install").padding(.vertical, 5)
         Button("Select Steam (Wine) install directory...") {
-            if let url = openFolderSelectorPanel(type: .folder, title: "Select Steam (Wine) install directory") {
-                let raw = url.absoluteString
-                if raw.hasPrefix(appGlobals.selectedBottle) {
-                    appGlobals.steamWinePath = raw.dropFirst(appGlobals.selectedBottle.count).description
-                } else {
-                    _ = ErrorView(
-                        title: "Steam (Wine) install is not in the selected bottle",
-                        message: "The Steam install folder must be located under the selected bottle. Please reselect the Steam install folder",
-                        isPresented: $showError
-                    )
-                    // Leave steamWinePath unchanged rather than clobbering it
-                }
+            guard let url = openFolderSelectorPanel(type: .folder, title: "Select Steam (Wine) install directory") else { return }
+            guard let bottleURL = URL(string: appGlobals.selectedBottle),
+                  let relativePath = relativePathInBottle(selected: url, bottle: bottleURL) else {
+                showSteamPathError = true  // ← replace the commented block with this
+                return
             }
+            appGlobals.steamWinePath = relativePath
         }
+        .alert("Invalid Steam Location", isPresented: $showSteamPathError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("The Steam install folder must be located under the selected bottle. Please reselect the Steam install folder.")
+        }
+        
         if hasSteamPath {
             Text(appGlobals.steamWinePath)
                 .font(.footnote)
@@ -303,6 +307,18 @@ struct OptionsView: View {
             console.saveLogs()
         }
     }
+}
+
+private func relativePathInBottle(selected: URL, bottle: URL) -> String? {
+    let bottlePath = bottle.standardizedFileURL.path(percentEncoded: false)
+    let selectedPath = selected.standardizedFileURL.path(percentEncoded: false)
+    guard selectedPath.hasPrefix(bottlePath) else { return nil }
+    var remainder = String(selectedPath.dropFirst(bottlePath.count))
+    guard !remainder.isEmpty else { return nil }
+    if remainder.hasPrefix("/") {
+        remainder = String(remainder.dropFirst())
+    }
+    return remainder.isEmpty ? nil : remainder
 }
 
 #Preview {
