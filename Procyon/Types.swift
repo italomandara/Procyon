@@ -8,12 +8,22 @@
 import Foundation
 import Combine
 
-let cxGraphicsBackend: [(id: String, label: String)] = [
+typealias DropdownOptions = [(id: String, label: String)]
+
+let cxGraphicsBackend: DropdownOptions = [
     (id: "dxmt", label: "DXMT"),
     (id: "d3dmetal", label: "D3Dmetal"),
     (id: "wined3d", label: "Wine"),
     (id: "dxvk", label: "DXVK"),
     (id: "auto", label: "Auto")
+]
+
+let cxVulkanBackend: DropdownOptions = [
+    (id: "", label: "Standard"),
+    (id: "latest", label: "Latest"),
+    (id: "experimental", label: "Experimental"),
+    (id: "dbh", label: "Detroit Become Human"),
+//    (id: "kosmickrisp", label: "KosmicKrisp")
 ]
 
 enum OnOff: String {

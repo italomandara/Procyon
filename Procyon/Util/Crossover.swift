@@ -30,7 +30,7 @@ func getCXPatcherBottlesURL(appDir: URL)  throws -> URL {
     let base = f.homeDirectoryForCurrentUser
     
     let confPath: URL = appDir.appendingPathComponent("/Contents/SharedSupport/CrossOver/etc/CrossOver.conf")
-    console.log("Loading CrossOver configurationf from \(confPath.path) ...")
+    console.log("Loading CrossOver configuration from \(confPath.path) ...")
     let envSection = getConfigSection(fileURL: confPath, section: "EnvironmentVariables")
     console.log("Finding CX_BOTTLE_PATH in configuration ...")
     let cxBottlePath = envSection["CX_BOTTLE_PATH"]
