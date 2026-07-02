@@ -10,7 +10,15 @@ import SwiftUI
 struct GameOptionsView: View {
     @Binding var game: Game?
     @EnvironmentObject var gameOptions: GameOptions
-    
+
+    let vulkanLibOptions: [(id: String, label: String)] = [
+        (id: "", label: "Standard"),
+        (id: "latest", label: "Latest"),
+        (id: "experimental", label: "Experimental"),
+        (id: "dbh", label: "Detroit Become Human")
+        // (id: "kosmickrisp", label: "KosmicKrisp")
+    ]
+
     var preferredMaxFrameRate: String {
         $gameOptions.dxmtPreferredMaxFrameRate.wrappedValue < 20.0 ? "Disabled" : "\($gameOptions.dxmtPreferredMaxFrameRate.wrappedValue)"
     }
@@ -31,12 +39,26 @@ struct GameOptionsView: View {
                             
                             VStack(alignment: .trailing){
                                 if !game!.isNative {
-                                    Picker("Graphics Backend", selection: $gameOptions.cxGraphicsBackend) {
-                                        ForEach(cxGraphicsBackend, id: \.id) { (id, label) in
-                                            Text(label).tag(id)
+                                    HStack {
+                                        Text("Graphics Backend")
+                                        Menu {
+                                            ForEach(cxGraphicsBackend, id: \.id) { (id, label) in
+                                                Button {
+                                                    gameOptions.cxGraphicsBackend = id
+                                                } label: {
+                                                    if gameOptions.cxGraphicsBackend == id {
+                                                        Label(label, systemImage: "checkmark")
+                                                    } else {
+                                                        Text(label)
+                                                    }
+                                                }
+                                            }
+                                        } label: {
+                                            Text(cxGraphicsBackend.first(where: { $0.id == gameOptions.cxGraphicsBackend })?.label ?? "Select")
                                         }
+                                        .menuStyle(.borderlessButton)
+                                        .fixedSize()
                                     }
-                                    .pickerStyle(.menu)
                                 }
                                 Divider()
                                 TextField("Game arguments", text: $gameOptions.gameArguments)
@@ -64,19 +86,26 @@ struct GameOptionsView: View {
                                     Text("Vulkan options")
                                     Toggle("Enable UE4 Hack", isOn: $gameOptions.ue4Hack)
                                     Toggle("MTL arg. buffers", isOn: $gameOptions.mvkArgBuff)
-                                    Picker("VK lib", selection: $gameOptions.vulkanLib) {
-                                        Text("Standard")
-                                            .tag("")
-                                        Text("Latest")
-                                            .tag("latest")
-                                        Text("Experimental")
-                                            .tag("experimental")
-                                        Text("Detroit Become Human")
-                                            .tag("dbh")
-//                                        Text("KosmicKrisp")
-//                                            .tag("kosmickrisp")
+                                    HStack {
+                                        Text("VK lib")
+                                        Menu {
+                                            ForEach(vulkanLibOptions, id: \.id) { (id, label) in
+                                                Button {
+                                                    gameOptions.vulkanLib = id
+                                                } label: {
+                                                    if gameOptions.vulkanLib == id {
+                                                        Label(label, systemImage: "checkmark")
+                                                    } else {
+                                                        Text(label)
+                                                    }
+                                                }
+                                            }
+                                        } label: {
+                                            Text(vulkanLibOptions.first(where: { $0.id == gameOptions.vulkanLib })?.label ?? "Select")
+                                        }
+                                        .menuStyle(.borderlessButton)
+                                        .fixedSize()
                                     }
-                                    .pickerStyle(.menu)
                                 }
                             }
                         }
