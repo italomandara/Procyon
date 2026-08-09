@@ -21,6 +21,12 @@ struct SteamGameResponse: Codable, Sendable {
     let data: [SteamGame]
 }
 
+struct SteamStoreSearchItem: Codable, Identifiable, Sendable {
+    let appid: String
+    let name: String
+    var id: String { appid }
+}
+
 struct SteamOwnedGamesResponse: Codable, Sendable {
     let response: SteamOwnedGames
 }
@@ -192,6 +198,27 @@ final class SteamAPI {
         self.cacheOwnedGamesIDs.removeAll()
         console.warn("IDs Cache deleted")
     }
+    func searchStore(term: String) async throws -> [SteamStoreSearchItem] {
+        let trimmed = term.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [] }
+        var allowed = CharacterSet.urlPathAllowed
+        allowed.remove(charactersIn: "/")
+        guard let encoded = trimmed.addingPercentEncoding(withAllowedCharacters: allowed) else {
+            throw APIError.badURL
+        }
+        let urlString = "https://steamcommunity.com/actions/SearchApps/\(encoded)"
+        let headers: HTTPHeaders = [
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
+            "Accept": "application/json"
+        ]
+        let data = try await AF.request(urlString, method: .get, headers: headers)
+            .validate(statusCode: 200..<300)
+            .serializingData()
+            .value
+        guard !data.isEmpty else { return [] }
+        return try JSONDecoder().decode([SteamStoreSearchItem].self, from: data)
+    }
+    
     func fetchGameInfo(appID: String) async throws -> SteamGame? {
         if self.cacheBlacklist.contains(appID) {
             console.log("skipping \(appID) as it's blacklisted")

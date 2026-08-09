@@ -38,8 +38,9 @@ struct GameThumbnail: View {
                 ZStack(alignment: .topTrailing){
                     KFImage(URL(string: item.headerImage))
                         .placeholder {
-                            ProgressView()
+                            if !item.headerImage.isEmpty { ProgressView() }
                         }
+                        .onFailureView { Color.clear }
                         .resizable()
                         .aspectRatio(2.15, contentMode: .fit)
                         .frame(maxWidth:.infinity, maxHeight: .infinity, alignment: .top)
