@@ -43,8 +43,9 @@ struct GameDetailView: View {
                     } else {
                         KFImage(URL(string: game!.headerImage))
                             .placeholder {
-                                ProgressView()
+                                if !game!.headerImage.isEmpty { ProgressView() }
                             }
+                            .onFailureView { Color.clear }
                             .resizable()
                             .scaledToFit()
                     }

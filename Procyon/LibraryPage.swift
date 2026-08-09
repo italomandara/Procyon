@@ -29,11 +29,10 @@ struct LibraryPage: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
                     .background {
-                        if (libraryPageGlobals.selectedGame?.headerImage != nil){
-                            KFImage(URL(string: libraryPageGlobals.selectedGame!.headerImage))
-                                .placeholder {
-                                    ProgressView()
-                                }
+                        if let headerImage = libraryPageGlobals.selectedGame?.headerImage,
+                           !headerImage.isEmpty,
+                           let url = URL(string: headerImage) {
+                            KFImage(url)
                                 .resizable()
                                 .scaledToFill()
                                 .blur(radius: 10)
