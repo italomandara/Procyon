@@ -167,7 +167,6 @@ struct GameOptionsView: View {
     @MainActor
     private func autoconfig() async throws {
         if let id = game?.steamAppID {
-            print(id)
             if let autoconfigData = try await api.fetchAutoConfig(steamID: String(id)) {
                 gameOptions.importAutoConfig(data: autoconfigData)
             }

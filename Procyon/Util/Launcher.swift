@@ -27,12 +27,6 @@ func closeWineActivities() async throws {
         }
         return false
     }
-    print(
-        NSWorkspace.shared.runningApplications.flatMap({
-            [$0.localizedName ?? "-" , $0.bundleURL?.lastPathComponent ?? "-", $0.executableURL?.lastPathComponent ?? "-"]
-        })
-    )
-    print(targets.debugDescription)
     // Send terminate to all matching apps
     for app in targets {
         if let name = (app.executableURL != nil ? app.executableURL : app.bundleURL)?.lastPathComponent {

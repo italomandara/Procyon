@@ -75,7 +75,7 @@ struct CustomGameView: View {
                                                 game = fetchedGame!
                                             }
                                         } catch {
-                                            print(error)
+                                            console.error(String(reflecting: error))
                                         }
                                         game.headerImage = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/\(game.steamAppID)/header.jpg"
                                         game.appExeURL = url

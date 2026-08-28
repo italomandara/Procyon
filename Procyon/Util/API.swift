@@ -346,7 +346,6 @@ final class CustomGameAPI {
             .validate(statusCode: 200..<300)
             .serializingData()
             .value
-        print("fetching custom game")
         let root = try JSONDecoder().decode(GameResponse.self, from: data)
         
 //        cache[appID] = root.data[0]

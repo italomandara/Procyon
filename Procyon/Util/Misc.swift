@@ -351,7 +351,6 @@ class SteamLaunchWatcher: SteamLogWatcher {
                 for fileContentLine in content.split(separator: "[") {
                     if(fileContentLine.contains(appIDMarker)) {
                         let match = fileContentLine.firstMatch(of: pattern)
-                        print(fileContentLine)
                         appExe = String(match?.output ?? "not found")
                         polling = false
                     }
