@@ -72,7 +72,7 @@ struct GameOptionsView: View {
                                 Text(localizedString(forKey: "preferredMaxFrameRate", value: preferredMaxFrameRate))
                                 Slider(
                                     value: $gameOptions.dxmtPreferredMaxFrameRate,
-                                    in: 19...240,
+                                    in: 19...400,
                                     step: 1.0
                                 )
                                 .help(localizedString(forKey: "preferredMaxFrameRateHelp"))
@@ -110,7 +110,7 @@ struct GameOptionsView: View {
                                 Text(localizedString(forKey: "preferredMaxFrameRate", value: d3dMaxFPS))
                                 Slider(
                                     value: $gameOptions.d3dMaxFPS,
-                                    in: 19...240,
+                                    in: 19...400,
                                     step: 1.0
                                 )
                                 .help(localizedString(forKey: "preferredMaxFrameRateHelp"))
