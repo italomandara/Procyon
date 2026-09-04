@@ -13,6 +13,11 @@ struct CustomGameView: View {
     @State private var game: Game = .emptyGame
     @State private var id: String = ""
     @State private var isAutofilling: Bool = false
+    @State private var showDetails = false
+    @State private var isSearchingSteam = false
+    @State private var steamSearchResults: [SteamStoreSearchItem] = []
+    @State private var steamSearchTask: Task<Void, Never>?
+    @State private var skipNextSteamSearch = false
     @EnvironmentObject var libraryPageGlobals: LibraryPageGlobals
     @Binding var isPresented: Bool
     
@@ -33,6 +38,9 @@ struct CustomGameView: View {
                             Text(game.name).tag(game.id)
                         }
                     }.onChange(of: id) {
+                        steamSearchTask?.cancel()
+                        skipNextSteamSearch = true
+                        steamSearchResults = []
                         if id != "" {
                             if let currentGame = libraryPageGlobals.getCustomAddedGame(id: id) {
                                 game = currentGame
@@ -43,7 +51,23 @@ struct CustomGameView: View {
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Game Title")
-                        TextField("Game Title", text: $game.name)
+                        HStack {
+                            TextField("Game Title", text: $game.name)
+                                .onChange(of: game.name) { _, _ in scheduleSteamSearch() }
+                            if isSearchingSteam { ProgressView().controlSize(.small) }
+                        }
+                        if !steamSearchResults.isEmpty {
+                            VStack(alignment: .leading, spacing: 2) {
+                                ForEach(steamSearchResults.prefix(8)) { result in
+                                    Button(result.name) { applySteamResult(result) }
+                                        .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.accentColor.opacity(0.15))
+                            .cornerRadius(8)
+                        }
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Header Image URL")
@@ -117,8 +141,15 @@ struct CustomGameView: View {
                             }
                         }
                     }
-                }
-            }.frame(alignment: .top)
+                }.frame(alignment: .top)
+            }
+            Button {
+                showDetails.toggle()
+            } label: {
+                Label("Details", systemImage: showDetails ? "chevron.down" : "chevron.right")
+            }
+            .buttonStyle(.plain)
+            if showDetails {
             // Descriptions
             HStack(alignment: .top, spacing: 20) {
                 VStack(alignment: .leading, spacing: 6) {
@@ -214,6 +245,7 @@ struct CustomGameView: View {
                     )
                 }
             }
+            }
             Group {
                 if id != "" {
                     ProminentButton("Update Game", systemImage: "arrow.2.circlepath") {
@@ -232,6 +264,41 @@ struct CustomGameView: View {
         }
         .padding(.vertical)
         .frame(width: 700)
+    }
+    
+    private func scheduleSteamSearch() {
+        if skipNextSteamSearch { skipNextSteamSearch = false; return }
+        steamSearchTask?.cancel()
+        let query = game.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard query.count >= 2, query != "Game Name here" else {
+            steamSearchResults = []; isSearchingSteam = false; return
+        }
+        steamSearchTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            guard !Task.isCancelled else { return }
+            isSearchingSteam = true
+            defer { isSearchingSteam = false }
+            steamSearchResults = (try? await api.searchStore(term: query)) ?? []
+        }
+    }
+    
+    private func applySteamResult(_ result: SteamStoreSearchItem) {
+        steamSearchTask?.cancel()
+        isSearchingSteam = true
+        Task { @MainActor in
+            defer { isSearchingSteam = false }
+            guard let steamGame = try? await api.fetchGameInfo(appID: result.appid) else { return }
+            let exe = game.appExeURL
+            let names = game.appNames
+            let native = game.isNative
+            let nextID = (game.id.isEmpty || game.id == "example")
+                ? (exe?.path(percentEncoded: false) ?? result.appid)
+                : game.id
+            skipNextSteamSearch = true
+            game = Game(from: steamGame, id: nextID, isNative: native, downloadProgress: 100, isInstalled: true, appNames: names, isCustom: true)
+            game.appExeURL = exe
+            steamSearchResults = []
+        }
     }
 }
 

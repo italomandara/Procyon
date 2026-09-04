@@ -333,6 +333,7 @@ struct Game: Identifiable, Codable {
         self.downloadProgress = downloadProgress
         self.isInstalled = isInstalled
         self.appNames = appNames
+        self.isCustom = isCustom
         
         // SteamGame property
         self.type = from.type

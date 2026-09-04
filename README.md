@@ -29,7 +29,31 @@ https://github.com/italomandara/Procyon/issues/1
 
 Which is pretty much in line with the roadmap
 
-### Contributing:
+# Instructions
+Unfortunately there are still some steps that are needed to be done manually:
+
+## step 1:
+Choose  Procyon for crossover 26 (patched) -> Procyon.app.zip
+
+Or Procyon for crossover preview (light patched) -> Procyon.Preview.app.zip
+
+## step 2:
+open The options panel,
+From the button on top select your unpatched crossover app
+
+## step 3:
+after the app is patched you need a bottle with a steam installation so you need to close the option panel open the patched crossover app from procyon using the crossove button and install steam
+
+## step 4:
+open The procyonized steam from procyon,
+login with your user using the standard steam interface, you'll also need to configure steam folders (you can also locate folders that are in some other bottles or external drives if you don't want to install the games again)
+
+## step 5:
+open The options panel again,
+unselect and re-select the bottle from the dropdown, and procyoon should find your folders if you have steam for mac, it should be able to detect your mac steam folders too, you should see procyon analyzing your game libraries, wait until complete 
+
+
+# Contributing:
 Everyone is welcome to contribute but please follow some basic rules:
 - No AI generated code: it is important that you read the codebase get a rough idea on how things are working (you can contact me on discord for clarifications) you can use AI but please no vibe coding.
 - No untested features, if you plan to open a PR please make sure it works before.
