@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Security
 
 func getCXDefaultBottlesURL() -> URL {
     let appID = "com.codeweavers.CrossOver" as CFString
@@ -296,4 +297,107 @@ func install(cxAppPath: String, bottleName: String = "Steam", template: String =
     proc.arguments = ["--create", "--bottle", bottleName, "--template", template]
     try proc.run()
     return proc
+}
+
+enum License {
+    enum Status {
+        case active
+        case notActive
+        case invalid
+        case notFound
+        case errorDecrypting
+    }
+    
+    static private func derDataFromPEM(_ pem: String) -> Data? {
+        // Keep only base64 lines (strip headers/footers/empty lines)
+        let base64Lines = pem
+            .components(separatedBy: .newlines)
+            .filter { !$0.hasPrefix("-----") && !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        let base64 = base64Lines.joined()
+        return Data(base64Encoded: base64)
+    }
+
+    static private func verifyRSASignature(message: Data, signature: Data, publicKey: Data, algorithm: SecKeyAlgorithm) -> Bool {
+        // Or you can use SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA256 to hash internally.
+        
+        let options: [String: Any] = [
+            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
+            kSecAttrKeyClass as String: kSecAttrKeyClassPublic
+        ]
+        
+        guard let publicKey = SecKeyCreateWithData(publicKey as CFData, options as CFDictionary, nil) else {
+            console.error("Can't create Key")
+            return false
+        }
+        
+        guard SecKeyIsAlgorithmSupported(publicKey, .verify, algorithm) else {
+            console.error("unsupported algorithm")
+            return false
+        }
+        
+        var error: Unmanaged<CFError>?
+        let ok = SecKeyVerifySignature(publicKey, algorithm, message as CFData, signature as CFData, &error)
+        if let err = error?.takeRetainedValue() {
+            print("Verify error: \(err)")
+        }
+        return ok
+    }
+
+    static func validate(cxAppURL: URL) -> Status {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let licenseFileBase = "com.codeweavers.CrossOver"
+        let licenseDirs: [URL] = [
+            home.appendingPathComponent("Library/Preferences"),
+            URL(filePath: "/Library/Preferences")
+        ].filter {
+            FileManager.default.fileExists(
+                atPath: $0
+                    .appendingPathComponent(licenseFileBase)
+                    .appendingPathExtension("license")
+                    .path(percentEncoded: false))
+        }
+        guard let dir = licenseDirs.first else {
+            console.log(licenseDirs.debugDescription)
+            return .notFound
+        }
+        
+        guard let licenseURL = licenseDirs.first?
+            .appendingPathComponent(licenseFileBase)
+            .appendingPathExtension("license") else {
+            console.log(licenseDirs.debugDescription)
+            return .notFound
+        }
+        
+        let keyFileURL: URL = cxAppURL
+            .appendingPathComponent(SHARED_SUPPORT_COMPONENT)
+            .appendingPathComponent("/share/crossover/data/tie.pub")
+        let signatures: [(url: URL, algorithm: SecKeyAlgorithm)] = [
+            (dir.appending(path: "\(licenseFileBase).sha256"), .rsaSignatureMessagePKCS1v15SHA256),
+            (dir.appending(path: "\(licenseFileBase).sig"), .rsaSignatureMessagePSSSHA1),
+        ].filter {
+            FileManager.default.fileExists(atPath: $0.url.path(percentEncoded: false))
+        }
+        
+        if(signatures.isEmpty) {
+            console.log(signatures.debugDescription)
+            return .notFound
+        }
+        
+        let signatureURL = signatures.first!.url
+        let algorithm = signatures.first!.algorithm
+        
+        do {
+            console.log(["licenseURL": licenseURL, "signatureURL": signatureURL, "keyFileURL": keyFileURL, "algorithm": algorithm].debugDescription)
+            if let publicKey = derDataFromPEM(try String(contentsOf: keyFileURL, encoding: .utf8)) {
+                let ok = try verifyRSASignature(message: Data(contentsOf: licenseURL), signature: Data(contentsOf: signatureURL), publicKey: publicKey, algorithm: algorithm)
+                return ok ? .active : .invalid
+            } else {
+                console.error("error extracting Data from PEM")
+                return .errorDecrypting
+            }
+        } catch {
+            console.error(String(describing: error))
+            return .errorDecrypting
+        }
+    }
 }

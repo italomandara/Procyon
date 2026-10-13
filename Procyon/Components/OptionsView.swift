@@ -32,9 +32,24 @@ struct OptionsView: View {
                     if let url = openFolderSelectorPanel(type: .application) {
                         appGlobals.selectedBottle = ""
                         Task { @MainActor in
+                            switch (License.validate(cxAppURL: url)) {
+                            case .notFound, .errorDecrypting:
+                                console.warn("Can't find the license file or the license files are corrupt")
+                                return
+                            case .notActive:
+                                console.warn("Inactive app, try and run the crossover app once first")
+                                return
+                            case .invalid:
+                                console.warn("Invalid/Expired licence")
+                                return
+                            default:
+                                console.log("Valid License found")
+                                break
+                            }
+                            
                             let patchedAppURL = await makeCrossoverPatchedCopy(sourceCXPath: url, setProgress: { p,m in progress = p; progressLabel = m  }, setLoading: { state in downloading = state })
                             progress = 0
-                            await makeX87CrossoverPatchedCopy(sourceCXPath: url, patchedApp: patchedAppURL)
+                            //                            await makeX87CrossoverPatchedCopy(sourceCXPath: url, patchedApp: patchedAppURL)
                             appGlobals.cxAppPath = patchedAppURL.path(percentEncoded: false)
                             persistUsrDefOptionString(key: "cxAppPath", value: patchedAppURL.relativePath)
                             persistUsrDefOptionString(key: "cxCompleteAppPath", value: patchedAppURL.path(percentEncoded: false))
